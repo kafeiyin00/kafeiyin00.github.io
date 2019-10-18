@@ -24,3 +24,12 @@ google_analytics: UA-150369098-1
 # The following settings are NECESSARY for the Prologue theme to run:
 theme: jekyll-theme-prologue
 collections: [sections]
+
+comments:
+  gitalk: true
+  gitalk_clientID: '86e4c580a467084a7eb0'
+  gitalk_Secret: 'e6b5eed51421ff7ae477b970157da60594805b15'
+  gitalk_repo: 'kafeiyin00.github.io'
+  gitalk_owner: 'kafeiyin00'
+  gitalk_admin: 'kafeiyin00'
+  distractionFreeMode: true
