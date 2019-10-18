@@ -1,6 +1,6 @@
 ---
 title: Publications
 icon: fa-check
-order: 4
+order: 3
 ---
 ****************************
