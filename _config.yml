@@ -19,7 +19,7 @@ github_url: https://github.com/kafeiyin00
 researchgate_url: https://www.researchgate.net/profile/Jianping_Li29
 
 # Google Analytics Tracking ID goes here:
-# google_analytics:
+google_analytics: UA-150369098-1
 
 # The following settings are NECESSARY for the Prologue theme to run:
 theme: jekyll-theme-prologue
