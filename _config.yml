@@ -10,8 +10,8 @@ email: lijianping@whu.edu.cn
 avatar: assets/images/avatar.jpg
 
 # You'll want to customize url and baseurl for your own site:
-baseurl: "https://kafeiyin00.github.io/" # the subpath of your site, e.g. /blog
-url: "https://kafeiyin00.github.io/" # the base hostname & protocol for your site
+baseurl: "/" # the subpath of your site, e.g. /blog
+url: "https://kafeiyin00.github.io/#" # the base hostname & protocol for your site
 
 # Social settings
 # Make sure to include the full url including protocol
