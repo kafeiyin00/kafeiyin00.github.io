@@ -1,7 +1,7 @@
 ---
 title: Welcome to my blog!
 icon: fa-check
-order: 5
+order: 6
 ---
 Welcome to my blog
 
