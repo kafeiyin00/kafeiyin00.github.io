@@ -260,4 +260,4 @@ _   underscore
 ```
 
 
-{% include gitalk.html %} 
+{% include gittalk.html %} 
