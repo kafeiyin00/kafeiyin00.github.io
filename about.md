@@ -4,4 +4,4 @@ title: 关于
 permalink: /about/
 ---
 
-这是一个关于页面，请编辑about.md以介绍你的博客。
+I am a phD candidate in Wuhan University. I am interested in the hardware integration and data fusion of mobile mapping system.
