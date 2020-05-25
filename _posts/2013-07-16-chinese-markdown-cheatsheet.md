@@ -5,7 +5,7 @@ date: 2013-07-16
 Author: Shengbin
 categories: 
 tags: [sample, markdown]
-comments: true
+comments: false
 ---
 
 本中文版Markdown语法简介来自博客 <https://blog.shengbin.me/posts/markdown-syntax>
