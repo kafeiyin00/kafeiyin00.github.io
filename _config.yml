@@ -7,7 +7,7 @@
 # 井号后面的文字是说明文档，不会被程序读取。
 name: 李健平/Jianping Li
 # 描述/签名
-description: 我的移动测量世界 / My mobile mapping
+description: Mobile mapping
 
 #
 # 下面的设定都是可选的
@@ -57,7 +57,7 @@ footer-links:
   researchgate: https://www.researchgate.net/profile/Jianping_Li29
 
 # 站点页脚的文字
-footer-text: Copyright (c) 2020 来自我的移动测量
+footer-text: Copyright (c) 2020 来自Mobile mapping
 
 # 输入Disqus shortname，即可添加评论区，细节可阅读文档。
 disqus: mobile mapping #shortname
