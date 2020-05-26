@@ -73,10 +73,10 @@ $$
 
 利用最小二乘法，可以解
 
-\$$ {\left[\begin{array}{cc}
-               \\delta y 
-              \\\ \delta y
-             \\end{array}\right]}$$
+$$ {\left[\begin{array}{cc}
+               \delta x 
+              \\ \delta y
+             \end{array}\right]}$$
 
 
 ## 1.2 Horn/Schunck (稠密光流)
@@ -157,10 +157,11 @@ $$  E(w) = E_{color}(w) + E_{grad}(w) + E_{smooth}(w) + E_{match}(w) + E_{desc}(
 
 参考：　EpicFlow: Edge-Preserving Interpolation of　Correspondences for Optical Flow
 
-EpicFlow中用到了deepMatching,由于是一个比较老的基于深度学习的匹配算法，就先忽略．这里先介绍
+### 1.4.1 PatchMatch
+
+EpicFlow中用到了deepMatching,先忽略．这里先介绍
 PatchMatch (generized patch match).同样可以实现稠密匹配．
 
-### 1.4.1 PatchMatch
 参考：　The Generalized PatchMatch Correspondence Algorithm
 
 PatchMatch 完成的任务：　为影像$I_1$ 中的patch $x$　找到 影像$I_2$　中的 match $f(x)$
@@ -177,7 +178,15 @@ Random search: Propagate 每次搜索范围较小，还需要给当前最优值�
 
 通过Propagate　和　Random search 两步来回迭代，实现patchmatch.
 
-### 1.4.2 EpicFlow
+
+### 1.4.2 DeepMatching
+
+
+### 1.4.3 SED (Structured forests for fast edge detection)
+
+
+
+### 1.4.4 EpicFlow
 
 现在可以继续关注光流这个重点了．
 
