@@ -12,6 +12,8 @@ comments: false
 {:.no_toc}
 
 * Will be replaced with the ToC, excluding the "Contents" header
+
+
 {:toc}
 
 
@@ -52,7 +54,7 @@ $$ \frac {\partial I} {\partial x} \delta x +
  
 其中待解参数为　$ \delta x $ 和　$ \delta y $　（也就是光流）. 对于一个像素点，只可以列一个方程，
 解不了两个参数．因此还需要假设局部（一个窗口）内的光流是一致的．假设窗口内有ｎ个像素，其对应梯度为：
-$ I_{x_n}　,  I_{y_n}$　，　观测到了ｎ个光度差 : $ I_{t_n}$．
+$ I_{x_n}　,  I_{y_n}$, 观测到了ｎ个光度差 : $ I_{t_n}$．
 可以列出以下方程
 
 $$
@@ -179,11 +181,41 @@ Random search: Propagate 每次搜索范围较小，还需要给当前最优值�
 通过Propagate　和　Random search 两步来回迭代，实现patchmatch.
 
 
-### 1.4.2 DeepMatching
+### 1.4.2 DeepMatching　
+
+参考：　DeepMatching: Hierarchical Deformable Dense Matching
+
+优质文章，后面仔细阅读．MARK
+
+核心思想：利用深度网络的架构，实现稠密的匹配，主要分为两个关键步骤：
+
+1. Bottom-up correlation pyramid computation
+
+    自底部向上的相关金字塔建立。
+
+    先将原始图片$I$划分为N*N的小patch,每一个小patch计算与$I^{'}$的相关图，相关系数的计算方式，和SIFT描述子相似。第一步的N很小，之后逐渐变大。
+
+    ![](https://pic.downk.cc/item/5ecdd75ec2a9a83be51f2e11.png)
+
+    多层次相关系数计算的示意图如下
+    ![](https://pic.downk.cc/item/5ecdd75ec2a9a83be51f2e18.png)
+
+    在最底层相关系数图计算完成后，可以通过aggragation的方式，生成高层次的相关系数图
+
+    ![](https://pic.downk.cc/item/5ecdd75ec2a9a83be51f2e1c.png)
+
+    这样就完成了相关金字塔的建立。
+
+2. Top-down correspondence extraction
+   
+    在建立好相关金字塔后，需要通过自顶而下的方式，搜索每一个匹配的对应。大致步骤如下图所示。
+    ![](https://pic.downk.cc/item/5ecdd998c2a9a83be521c5b0.png)
 
 
 ### 1.4.3 SED (Structured forests for fast edge detection)
 
+参考：Structured forests for fast edge detection
+代码：opencv 已经实现
 
 
 ### 1.4.4 EpicFlow
