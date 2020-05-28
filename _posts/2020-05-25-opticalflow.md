@@ -330,3 +330,36 @@ pwc-net 的框架如下,左边是传统coarse-to-fine方式
    enlarge the receptive field size of each output unit at
    the desired pyramid level.为啥可以增大感受野,这个暂时不能理解.
 
+### 2.4 MaskFlownet
+参考: MaskFlownet: Asymmetric Feature Matching with Learnable Occlusion Mask
+
+maskflownest 在求解光流场的时候,考虑了occlusion的影响,下面这个示意图可以很好的说明问题.
+
+![](https://pic.downk.cc/item/5ecf7b87c2a9a83be52262d6.png)
+
+上面这张图的前景部分运动的比较快,在warp之后留下可一个未知区域.由于upsampled后的初始光流场$\Phi$不会很准确,那么就会在warp后的图像中形成鬼影.这个问题目前还没有任何一个框架提及过.
+
+下面分析maskflownet中最主要的创新.
+
+![](https://pic.downk.cc/item/5ecf7890c2a9a83be51eabcd.png)
+
+  (a) 是flownet类似的框架,$\Phi$ 是光流场初始值,$F^{l}(I_2)$经过warp后与$F^{l}(I_1)$计算代价体积.代价计算方式如下:
+
+  $$ c(F^{l}(I_1),\Phi \circ F^{l}(I_2)) $$
+
+  (b) OFMM框架,$\Phi$ 是光流场初始值,$\theta$ 和 $\mu$ 是 mask. mask添加的操作如下:
+
+  $$ c(F^{l}(I_1),\Phi \circ F^{l}(I_2) \otimes \theta \oplus \mu) $$
+
+  $\theta$ 和 $\mu$ 的加入基本是不加入训练负担的,是因为如果某一块区域是occlusion的话,那么它乘$\theta$基本是不变的,主要起作用的是$\mu$, 这样训练的结果就是, $\theta$ 在occlusion区域为0, 即指示为occlusion区域.
+
+  (c) AsymOFMM框架. 作者指出,如果利用$\Phi$ 生成warp的影像,再和$F^{l}(I_1)$做相关处理,不如直接利用deformCNN,将$\Phi$ 作为偏移量加入deformCNN中. 这样是合理的,因为warp的处理方式还是很难以预测的,这样处理更加优雅,也使得相关处理变成对称的.
+
+
+### 2.5 PPAC-HD3
+
+参考: Probabilistic Pixel-Adaptive Refinement Networks
+
+github: https://github.com/visinf/ppac_refinement
+
+
