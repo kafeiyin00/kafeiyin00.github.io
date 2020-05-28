@@ -8,6 +8,7 @@ tags: [cv, learning]
 comments: false
 ---
 
+
 # Contents
 {:.no_toc}
 * Will be replaced with the ToC, excluding the "Contents" header
@@ -134,8 +135,8 @@ $$  E_{smooth}(w) = \int _{\Omega} { (\nabla u(x))^2 + (\nabla v(x))^2}dx $$
 
 $$  E_{match}(w) = \int _\Omega {} { \delta(x) \rho(x) (w(x)-w_1(x)) }dx $$
 
-$  E_{match}(w) $ 的意义是，对于图像中的某个位置$x$，已经有了特征点的匹配向量$w_1(x)$,
-那么该点的光流$w(x)$　应当与　$w_1(x)$　一致．$\delta(x)$ 就是判断是否有匹配（0 or 1）.
+$E_{match}(w)$ 的意义是，对于图像中的某个位置$x$，已经有了特征点的匹配向量$w_1(x)$,
+那么该点的光流$w(x)$　应当与　$w_1(x)$一致．$\delta(x)$ 就是判断是否有匹配（0 or 1）.
 $\rho(x)$ 是匹配的权重（好坏）．
 
 除了匹配向量的约束外，作者还加入了特征距离约束．注意这里优化的是$w1(x)$，而不是$w(x)$
@@ -214,11 +215,118 @@ Random search: Propagate 每次搜索范围较小，还需要给当前最优值�
 参考：Structured forests for fast edge detection
 代码：opencv 已经实现
 
+SED 实现了对图像的边缘检测，在后续内插时，起到了保边的作用。
 
 ### 1.4.4 EpicFlow
 
-现在可以继续关注光流这个重点了．
+现在可以继续关注光流这个重点了.
+
+Epicflow的大部分步骤已经在上面介绍了.首先是利用DeepMatching实现两张图片的匹配,
+之后利用SED检测图像边缘. 再进行保边内插生成稠密光流,如下图所示:
+
+![](https://pic.downk.cc/item/5ece0c33c2a9a83be563dc69.png)
+
+
+保边内插的设计,是很值得借鉴的,一个例子如下图:
+
+![](https://pic.downk.cc/item/5ece0d42c2a9a83be565458e.png)
+
+(b)是利用SED检测的边缘,而作者假设一张图片的边缘也是运动边界,那么内插的时候,不可以跨越边界. 利用SED的结果生成一个voronoi图,再利用类似图割的模式,仅仅对一个块内部的像素进行内插.
+
+
+# 2. 深度学习
+
+暂时不对深度学习的方法做分类,只是简单的罗列具有代表性的方法.
+
+## 2.1 FlowNet
+
+参考: FlowNet: Learning Optical Flow with Convolutional Networks
+
+框架如下:
+
+![](https://pic.downk.cc/item/5ece21dfc2a9a83be582547a.png)
+
+![](https://pic.downk.cc/item/5ece2208c2a9a83be582793b.png)
+
+框架比较简单,这里直接分析FlowNetCorr:
+
+第一部分:通过卷积分别提取$I_1$ 和 $I_2$的特征
+
+第二部分:计算局部特征差异,例如,$I_1$ 的 特征图 $f_1$ 和 $I_2$ 的 特征图 $f_2$,
+对于$f_1$上的一个像素$x_1$,对应到$f_2$上的一个像素$x_2$,那么二者的特征差异计算
+如下:
+
+$$c(x1,x2)= \sum_{o\in [-k,k]\times[-k,k]}{<f_1(x_1+o),f_2(x_2+o)>}$$
+
+其次,比较重要的是,为了节省计算量,$x_1$只会寻找到一定范围内$x_1$. 图上的441 = (21*21).
+
+第三部分:继续将比较后的特征进行卷积.
+第四部分:反卷积,生成高分辨率的光流.
+
+不足:however, contains large errors in smooth background regions and requires
+variational refinement
+
+## 2.2 FlowNet 2.0
+
+参考: FlowNet 2.0: Evolution of optical flow estimation with deep networks
+
+
+框架如下:
+
+![](https://pic.downk.cc/item/5ece3c55c2a9a83be5a353dc.png)
+
+基本是网络叠加,先放一下
+
+
+## 2.3 PWC-Net: CNNs for Optical Flow Using Pyramid,Warping, and Cost Volume
+
+### 2.3.1 Cost volume
+参考: Fast Cost-Volume Filtering for Visual Correspondence and Beyond
+
+代价体积是视觉匹配中常用的概念, 以立体匹配为例, 下图绿色为示例的像素.(b)是通过局部相关计算出的代价. 其中红色为局部最优解.可以看到,由于噪声的原因,仅仅依靠局部相关计算的值误差很大. (c-e)是采用不同代价体积滤波后得到的结果.
+
+**虽然flownet里没有说Cost volume, 但是实际也用了cost volume的计算方式**
+
+![](https://pic.downk.cc/item/5ecf130fc2a9a83be5a79a80.png)
+
+
+### 2.3.2 MULTI-SCALE CONTEXT AGGREGATION BY DILATED CONVOLUTIONS
+参考: MULTI-SCALE CONTEXT AGGREGATION BY DILATED CONVOLUTIONS
+
+文中用这个网络增大感受野,补一下.
 
 
 
+### 2.3.3 PWC-NET
+
+pwc-net 的框架如下,左边是传统coarse-to-fine方式
+
+![](https://pic.downk.cc/item/5ecf28e4c2a9a83be5bd609b.png)
+
+1. Feature pyramid extractor.
+   
+   类似flow-net,都先将原始图像的特征利用多层cnn进行提取
+
+2. Warping layer.
+   
+   这一步是区别于flow-net的改进. 类比于传统coarse-to-fine,用低分辨率的光流对$I_2$进行warp,再进一步计算该层次的光流.只不过,在框架中warp的是特征.warp的方式如下:
+   $$ c_{w}^{l}(x)=c_{2}^{l}(x+up_2(w^{l+1})(x))$$
+   这个warp公式在文章中写的不是很规范,只能大概判断是那个意思,具体实现需要看代码.
+
+3. Cost volume layer.
+   
+   cost volume layer用来存储匹配代价,单个特征的差异计算,都是如下公式:
+   $$ cv^{l}(x_1,x_2) = \frac {1} {N} (c_{1}^{l}(x_1))^{\top}c_{w}^{l}(x_2) $$
+   与flownet一样,为了节约计算量,cost volume 的搜索范围是一定的.
+
+4. Optical flow estimator.
+   
+   为了计算光溜,这一步除了要输入代价体积之外,还要输入特征层. 其实也比较容易理解,是为了在估计最优值的时候估计原始图像的信息.(例如之前的传统方法EpicFlow中,利用图像的边缘信息进行平滑操作.)
+
+5. Context network.
+
+   这一层类比于传统方法在估计完光流后,在进行一次后处理.作者认为:Thus we
+   employ a sub-network, called the context network, to effectively
+   enlarge the receptive field size of each output unit at
+   the desired pyramid level.为啥可以增大感受野,这个暂时不能理解.
 
