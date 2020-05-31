@@ -12,8 +12,6 @@ comments: false
 
 与ADIS16488兼容
 
-![IMU size](https://pic.downk.cc/item/5ecb3a3ec2a9a83be5ebf5b4.jpg)
-
 接口为 samtec CLM-112-02-L-D-A
 
 ### IMU 数据接口
