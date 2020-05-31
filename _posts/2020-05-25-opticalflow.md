@@ -330,7 +330,7 @@ pwc-net 的框架如下,左边是传统coarse-to-fine方式
    enlarge the receptive field size of each output unit at
    the desired pyramid level.为啥可以增大感受野,这个暂时不能理解.
 
-### 2.4 MaskFlownet
+## 2.4 MaskFlownet
 参考: MaskFlownet: Asymmetric Feature Matching with Learnable Occlusion Mask
 
 maskflownest 在求解光流场的时候,考虑了occlusion的影响,下面这个示意图可以很好的说明问题.
@@ -356,10 +356,20 @@ maskflownest 在求解光流场的时候,考虑了occlusion的影响,下面这�
   (c) AsymOFMM框架. 作者指出,如果利用$\Phi$ 生成warp的影像,再和$F^{l}(I_1)$做相关处理,不如直接利用deformCNN,将$\Phi$ 作为偏移量加入deformCNN中. 这样是合理的,因为warp的处理方式还是很难以预测的,这样处理更加优雅,也使得相关处理变成对称的.
 
 
-### 2.5 PPAC-HD3
+## 2.5 PPAC-HD3
 
 参考: Probabilistic Pixel-Adaptive Refinement Networks
 
 github: https://github.com/visinf/ppac_refinement
 
 
+
+# 3. PWC-NET 代码详细
+
+
+在windows上运行预先训练的网络结果如下.
+
+
+![](https://pic.downk.cc/item/5ed3374dc2a9a83be5dd7318.png)
+
+![](https://pic.downk.cc/item/5ed3376bc2a9a83be5dda55e.png)
