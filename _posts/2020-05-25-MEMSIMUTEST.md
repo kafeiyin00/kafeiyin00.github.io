@@ -20,9 +20,7 @@ comments: false
 
 SPI配置：
 ```CPP
-
  	XSP_MASTER_OPTION| XSP_MANUAL_SSELECT_OPTION  | XSP_CLK_PHASE_1_OPTION | XSP_CLK_ACTIVE_LOW_OPTION
-
 ```
 最大传输速率4m. 说明书中要求拉低到低速模式（256分频），实际上测试并没有这么严格的要求。为了传输速率，将主时钟线100mhz进行16分频即可。
 
