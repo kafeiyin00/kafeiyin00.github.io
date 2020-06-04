@@ -373,3 +373,73 @@ github: https://github.com/visinf/ppac_refinement
 ![](https://pic.downk.cc/item/5ed3374dc2a9a83be5dd7318.png)
 
 ![](https://pic.downk.cc/item/5ed3376bc2a9a83be5dda55e.png)
+
+
+对网络中间结果显示:
+
+Extractor:
+
+```python
+
+netOne = torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=2, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1)
+            ).cuda().eval();
+
+netTwo = torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=2, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1)
+            ).cuda().eval();
+
+netThr = torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1)
+            ).cuda().eval();
+
+netFou = torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels=64, out_channels=96, kernel_size=3, stride=2, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=96, out_channels=96, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=96, out_channels=96, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1)
+            ).cuda().eval();
+
+netFiv = torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels=96, out_channels=128, kernel_size=3, stride=2, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1)
+            ).cuda().eval();
+
+netSix = torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels=128, out_channels=196, kernel_size=3, stride=2, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=196, out_channels=196, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1),
+                torch.nn.Conv2d(in_channels=196, out_channels=196, kernel_size=3, stride=1, padding=1),
+                torch.nn.LeakyReLU(inplace=False, negative_slope=0.1)
+            ).cuda().eval();
+
+```
+
+![](https://pic.downk.cc/item/5ed8cd74c2a9a83be5458dbb.jpg)
+
+![](https://pic.downk.cc/item/5ed8ce24c2a9a83be5464e2e.jpg)
+
+![](https://pic.downk.cc/item/5ed8ce8cc2a9a83be546d089.jpg)
+
