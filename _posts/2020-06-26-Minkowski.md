@@ -1,0 +1,250 @@
+---
+layout: post
+title: Minkowski 卷积网络
+date: 2020-06-26
+Author: jianping
+categories: 
+tags: [deep learning]
+comments: false
+---
+
+
+# 1. 以二分类开始
+
+二分类问题在计算机视觉中属于一个常见的问题. 在几何问题中的ransac方法,也可以抽象成二分类问题,即分割出inlier与outlier.
+
+![](https://pic.downk.cc/item/5ef89bdf14195aa594d80111.jpg)
+
+以这个图为例.蓝色是inlier,红色是outlier.为了提取出直线,传统方法就是ransac.我们用深度学习对方法来解决这个问题.
+
+我们要通过网络来学习点分布的特征,给每一个点赋予inlier或outlier属性.
+二维的离散点和图像不同,它离散的属性给点的卷积带来很大的麻烦.Minkowski Engine的大致原理就是将点云格网化,以空间格网组织点云,每一个格网赋予特征.后续在详细说明.
+
+
+首先继承Dataset类,生成散点, 其中inlier是分布在一条线上的,其他点随机分布.
+
+```python
+
+class RandomLineDataset(Dataset):
+
+    # Warning: read using mutable obects for default input arguments in python.
+    def __init__(
+        self,
+        angle_range_rad=[-np.pi/4, np.pi/4],
+        line_params=[
+            -1,  # Start
+            1,  # end
+        ],
+        is_linear_noise=True,
+        dataset_size=100,
+        num_samples=10000,
+        quantization_size=0.005):
+
+        self.angle_range_rad = angle_range_rad
+        self.is_linear_noise = is_linear_noise
+        self.line_params = line_params
+        self.dataset_size = dataset_size
+        self.rng = np.random.RandomState(0)
+
+        self.num_samples = num_samples
+        self.num_data = int(0.2 * num_samples)
+        self.num_noise = num_samples - self.num_data
+
+        self.quantization_size = quantization_size
+
+    def __len__(self):
+        return self.dataset_size
+
+    def _uniform_to_angle(self, u):
+        return (self.angle_range_rad[1] -
+                self.angle_range_rad[0]) * u + self.angle_range_rad[0]
+
+    def _sample_noise(self, num, noise_params):
+        noise = noise_params[0] + self.rng.randn(num, 1) * noise_params[1]
+        return noise
+
+    def _sample_xs(self, num):
+        """Return random numbers between line_params[0], line_params[1]"""
+        return (self.line_params[1] - self.line_params[0]) * self.rng.rand(
+            num, 1) + self.line_params[0]
+
+    # 获取一个训练样本,由num_samples个点组成
+    def __getitem__(self, i):
+        # Regardless of the input index, return randomized data
+        angle, intercept = np.tan(self._uniform_to_angle(
+            self.rng.rand())), self.rng.rand()
+
+        # Line as x = cos(theta) * t, y = sin(theta) * t + intercept and random t's
+        # Drop some samples
+        xs_data = self._sample_xs(self.num_data)
+        ys_data = angle * xs_data + intercept + self._sample_noise(
+            self.num_data, [0, 0.1])
+
+        noise = 4 * (self.rng.rand(self.num_noise, 2) - 0.5)
+
+        # Concatenate data
+        input = np.vstack([np.hstack([xs_data, ys_data]), noise])
+        feats = input
+        labels = np.vstack(
+            [np.ones((self.num_data, 1)),
+             np.zeros((self.num_noise, 1))]).astype(np.int32)
+
+        # Quantize the input
+        discrete_coords, unique_feats, unique_labels = ME.utils.sparse_quantize(
+            coords=input,
+            feats=feats,
+            labels=labels,
+            quantization_size=self.quantization_size,
+            ignore_label=-100)
+
+        return discrete_coords, unique_feats, unique_labels
+
+```
+
+由于Minkowski Engine 中coords向量的第一个维度是batch id,因此,在提取训练样本的时候,需要重新定义collation_fn函数,给coords加上一个维度.
+
+```python
+
+def collation_fn(data_labels):
+    coords, feats, labels = list(zip(*data_labels))
+    coords_batch, feats_batch, labels_batch = [], [], []
+
+    # Generate batched coordinates
+    coords_batch = ME.utils.batched_coordinates(coords)
+
+    # Concatenate all lists
+    feats_batch = torch.from_numpy(np.concatenate(feats, 0)).float()
+    labels_batch = torch.from_numpy(np.concatenate(labels, 0))
+
+    return coords_batch, feats_batch, labels_batch
+
+```
+
+下面简要分析下网络的结构 Unet
+
+前三个block是由MinkowskiConvolution组成的,目的是卷积提取点的高维度特征.
+后三个部分是反向卷积,相当于内插特征.在内插的过程中,需要concate前面卷积得到的特征.也很好理解,是为了顾及特征进行内插.
+
+```python
+
+class UNet(ME.MinkowskiNetwork):
+
+    def __init__(self, in_nchannel, out_nchannel, D):
+        super(UNet, self).__init__(D)
+        self.block1 = torch.nn.Sequential(
+            ME.MinkowskiConvolution(
+                in_channels=in_nchannel,
+                out_channels=8,
+                kernel_size=3,
+                stride=1,
+                dimension=D),
+            ME.MinkowskiBatchNorm(8))
+
+        self.block2 = torch.nn.Sequential(
+            ME.MinkowskiConvolution(
+                in_channels=8,
+                out_channels=16,
+                kernel_size=3,
+                stride=2,
+                dimension=D),
+            ME.MinkowskiBatchNorm(16),
+        )
+
+        self.block3 = torch.nn.Sequential(
+            ME.MinkowskiConvolution(
+                in_channels=16,
+                out_channels=32,
+                kernel_size=3,
+                stride=2,
+                dimension=D),
+            ME.MinkowskiBatchNorm(32))
+
+        self.block3_tr = torch.nn.Sequential(
+            ME.MinkowskiConvolutionTranspose(
+                in_channels=32,
+                out_channels=16,
+                kernel_size=3,
+                stride=2,
+                dimension=D),
+            ME.MinkowskiBatchNorm(16))
+
+        self.block2_tr = torch.nn.Sequential(
+            ME.MinkowskiConvolutionTranspose(
+                in_channels=32,
+                out_channels=16,
+                kernel_size=3,
+                stride=2,
+                dimension=D),
+            ME.MinkowskiBatchNorm(16))
+
+        self.conv1_tr = ME.MinkowskiConvolution(
+            in_channels=24,
+            out_channels=out_nchannel,
+            kernel_size=1,
+            stride=1,
+            dimension=D)
+
+    def forward(self, x):
+        out_s1 = self.block1(x)
+        out = MF.relu(out_s1)
+
+        out_s2 = self.block2(out)
+        out = MF.relu(out_s2)
+
+        out_s4 = self.block3(out)
+        out = MF.relu(out_s4)
+
+        out = MF.relu(self.block3_tr(out))
+        out = ME.cat(out, out_s2)
+
+        out = MF.relu(self.block2_tr(out))
+        out = ME.cat(out, out_s1)
+
+        return self.conv1_tr(out)
+
+
+```
+
+
+训练的过程和一般的网络大同小异,如下
+
+```python
+
+    criterion = torch.nn.CrossEntropyLoss(ignore_index=-100)
+
+    accum_loss, accum_iter, tot_iter = 0, 0, 0
+
+    for epoch in range(config.max_epochs):
+        train_iter = iter(train_dataloader)
+
+        # Training
+        net.train()
+        for i, data in enumerate(train_iter):
+            coords, feats, labels = data
+
+            example_mask = coords[:,0] ==0
+
+            plot(feats[example_mask],labels[example_mask].squeeze())
+
+
+            out = net(ME.SparseTensor(feats.float(), coords))
+            optimizer.zero_grad()
+            loss = criterion(out.F.squeeze(), labels.long())
+            loss.backward()
+            optimizer.step()
+
+            accum_loss += loss.item()
+            accum_iter += 1
+            tot_iter += 1
+
+            if tot_iter % 10 == 0 or tot_iter == 1:
+                print(
+                    f'Epoch: {epoch} iter: {tot_iter}, Loss: {accum_loss / accum_iter}'
+                )
+                accum_loss, accum_iter = 0, 0
+
+    torch.save(obj=net.state_dict(), f="models/net.pth")
+
+```
+
+其中要使用CrossEntropyLoss作为代价(二分类).
