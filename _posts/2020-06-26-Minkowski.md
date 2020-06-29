@@ -8,6 +8,10 @@ tags: [deep learning]
 comments: false
 ---
 
+# Contents
+{:.no_toc}
+* Will be replaced with the ToC, excluding the "Contents" header
+{:toc}
 
 # 1. 以二分类开始
 
@@ -248,3 +252,55 @@ class UNet(ME.MinkowskiNetwork):
 ```
 
 其中要使用CrossEntropyLoss作为代价(二分类).
+
+做一个小结. Minkowski Engine 实现了一种随意维度,大小的点云卷积方式. 核心是使用voxel组织管理输入的高维度离散数据.下面正式学习下Minkowski Convolutional的原理.
+
+# 2. Minkowski Convolutional Neural Networks
+
+参考:4D Spatio-Temporal ConvNets: Minkowski Convolutional Neural Networks
+
+## 2.1 Sparse Tensor
+
+对于离散点集输入$C$和其对应的特征$F$如下:
+
+$$ 
+C=\begin{bmatrix}
+    x_1 & y_1 & z_1 & t_1 & b_1 \\
+        &&        ... \\
+    x_N & y_N & z_N & t_N & b_N 
+ \end{bmatrix}, 
+
+F=\begin{bmatrix} 
+f_1^{T} \\
+...\\
+f_N^{T}
+\end{bmatrix}
+$$
+
+其中$x_N,  y_N, z_N$是空间坐标,$t_N$是时间, $b_N$是batch index.
+
+## 2.2 Generalized Sparse Convolution
+
+$$ x_u^{out} = \sum_{i\in V^D(K)}{W_i x_{u+i}^{in}}$$
+
+其中 $W_i$是卷积核的权重.维数为$W \in R^{K^D \times N^{out} \times N^{in}}$
+
+卷积核的形状如下图所示,可以根据需要去定义.
+
+
+![](https://pic.downk.cc/item/5ef9946a14195aa5941baaac.jpg)
+
+## 2.3 Sparse Tensor Quantization
+
+一开始对Quantization这个概念有些误解.其实作者的意思就是对原始点云进行体素化. 体素化的目的是方便进行2.2提到的卷积. 体素中只保留一个特征点及其卷积后得到的特征.
+
+## 2.4 ResNET18 & Unet
+
+利用sparse tensor 这一方式,很容易将图像领域成熟的卷积网络转换到点云上,如下图所示.
+
+![](https://pic.downk.cc/item/5ef9a8cd14195aa5942206df.jpg)
+
+![](https://pic.downk.cc/item/5ef9a8f614195aa594221844.jpg)
+
+# 3. Fully Convolutional Geometric Features
+
