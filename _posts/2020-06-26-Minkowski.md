@@ -340,7 +340,7 @@ We applied data augmentation including random scaling ∈ [0.8, 1.2] to a pair, 
 
 
 
-## 4.Deep Global Registration
+# 4.Deep Global Registration
 
 参考:Deep Global Registration
 
@@ -354,5 +354,11 @@ We applied data augmentation including random scaling ∈ [0.8, 1.2] to a pair, 
 
 
 这里有一个点,个人觉得很值得思考.之前总听组内的小伙伴提端到端,例如配准,就是从输入开始,一层一层地叠加网络,一个网络把从特征点到最终r,t解算全干了.但是看了Choy的一系列工作,其实特征提取,outlier filer,r,t计算,都是很明确的可分离的目标,既然处理流程(特诊提取->匹配->rt)确定了,是否真的需要端到端呢?
+
+
+# 5.Learning multiview 3D point cloud registration
+
+参考: Learning multiview 3D point cloud registration
+
 
 
