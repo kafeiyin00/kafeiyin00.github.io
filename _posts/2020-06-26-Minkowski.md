@@ -339,3 +339,20 @@ For all LIDAR scans, we used the first scan that is taken at least 10m apart wit
 We applied data augmentation including random scaling ∈ [0.8, 1.2] to a pair, and different random rotation augmentation ∈ [0◦, 360◦) along an arbitrary 3D direction for both scans in a pair. We
 
 
+
+## 4.Deep Global Registration
+
+参考:Deep Global Registration
+
+本文是Fully Convolutional Geometric Features的延续与运用.过了一下,其中最重要的部分是inlier和outlier二分类.就和开头的那个例子一样.
+
+这里有一个点,给我映像很深刻.
+
+开头二维的例子,是二维坐标$[x,y]$的二分类,inlier分布在一条直线上.而对于空间特征点匹配,是两组点$[(x_r,y_r,z_r),(x_t,y_t,z_t)]$ 是否满足转换关系$R,t$转换.可以直接把这两组点够成一个6维度向量,直接在6维空间内进行卷积,就可以了分割出inlier.仔细一想还是被作者的思维折服了.二分类的构架也是UNet,如下图
+
+![](https://pic.downk.cc/item/5efae7b414195aa59482f4c8.jpg)
+
+
+这里有一个点,个人觉得很值得思考.之前总听组内的小伙伴提端到端,例如配准,就是从输入开始,一层一层地叠加网络,一个网络把从特征点到最终r,t解算全干了.但是看了Choy的一系列工作,其实特征提取,outlier filer,r,t计算,都是很明确的可分离的目标,既然处理流程(特诊提取->匹配->rt)确定了,是否真的需要端到端呢?
+
+
