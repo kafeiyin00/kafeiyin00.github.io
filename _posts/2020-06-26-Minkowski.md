@@ -304,3 +304,38 @@ $$ x_u^{out} = \sum_{i\in V^D(K)}{W_i x_{u+i}^{in}}$$
 
 # 3. Fully Convolutional Geometric Features
 
+该网络主要由残差网络和跳跃连接组成的UNet构成,如下图
+
+![](https://pic.downk.cc/item/5ef9ef1a14195aa594391d43.jpg)
+
+## 3.1 Metric learning 度量学习
+
+参考:Improved Deep Metric Learning with Multi-class N-pair Loss Objective
+
+特征匹配的学习可以理解为提取特征映射,这个映射可以让相似的特征具有较近的距离,不同的特征距离较远.
+
+![](https://pic.downk.cc/item/5efaa3d214195aa5946e55c5.jpg)
+
+如何为训练过程提供正负样本是metric learning的关键.如上图所示,Triplet loss是最简单的方式,即提供一个正样本,提供一个负样本,利用正样本的距离小于负样本来进行训练.
+
+而这种方式的弊端就是训练的过程只能看到一个负样本.(N+1)-tuplet loss 是再一次训练中提供很多负样本,增大训练可靠性.这样做的弊端是数据集合极大.
+
+N-pair-mc loss则是把正样本对之间互相作为负样本,减少训练的数据量.
+
+## 3.2 Hardest-contrastive and Hardest-triplet Losses
+
+继续回到本文中,看下本文提出的Hardest-triplet Losses.
+
+本文提出的Hardest-triplet Losses和上述方式的区别是,上面的方法把所有负样本的影响放在一起训练,而本文方法只是将"最难"的那一个负样本挑出来,进行训练.这样做的好处直观上的理解是,只要保证区分性就可以了,没必要保证和所有的负样本都具有较远的距离.似乎本文的创新点就是这个...
+
+## 3.3 具体训练
+
+对于kitti数据的处理:
+
+For all LIDAR scans, we used the first scan that is taken at least 10m apart within each sequence to create a pair. We found the GPS “ground truth” to be very noisy and used the Iterative Clos- est Point algorithm (ICP) to refine the alignment.
+
+对于样本扩容:
+
+We applied data augmentation including random scaling ∈ [0.8, 1.2] to a pair, and different random rotation augmentation ∈ [0◦, 360◦) along an arbitrary 3D direction for both scans in a pair. We
+
+
