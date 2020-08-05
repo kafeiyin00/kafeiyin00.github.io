@@ -1,7 +1,7 @@
 ---
 layout: post
 title: ubuntu_proxy
-date: 2020-06-09
+date: 2020-07-09
 Author: jianping
 categories: 
 tags: [PROXY]
