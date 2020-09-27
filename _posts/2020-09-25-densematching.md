@@ -1,4 +1,4 @@
----
+ï»¿---
 layout: post
 title: dense matching
 date: 2020-09-14
@@ -19,13 +19,13 @@ comments: false
 
 ![](https://pic.downk.cc/item/5f6dd29e160a154a67efc8c5.jpg)
 
-15 -> rad ÃèÊö×ÓµÄ×î´ó°ë¾¶
+15 -> rad æè¿°å­çš„æœ€å¤§åŠå¾„
 
-3 -> rad_q_no °ë¾¶·½Ïò£¬·ÖÈı²ã
+3 -> rad_q_no åŠå¾„æ–¹å‘ï¼Œåˆ†ä¸‰å±‚
 
-8 -> th_q_no Ò»È¦8¸ö
+8 -> th_q_no ä¸€åœˆ8ä¸ª
 
-8 -> hist_th_q_no Ã¿¸öÈ¦ÓĞ8¸öÌİ¶È·½Ïò
+8 -> hist_th_q_no æ¯ä¸ªåœˆæœ‰8ä¸ªæ¢¯åº¦æ–¹å‘
 
 ```
 void daisy::set_parameters( double rad, int rad_q_no, int th_q_no, int hist_th_q_no )
@@ -42,7 +42,7 @@ void daisy::set_parameters( double rad, int rad_q_no, int th_q_no, int hist_th_q
       m_orientation_shift_table[i] = i/360.0 * m_hist_th_q_no;
    }
    m_layer_size = m_h*m_w;
-   m_cube_size = m_layer_size*m_hist_th_q_no; //Ô­Ê¼Í¼Æ¬°Ë¸ö·½ÏòµÄÌİ¶ÈÍ¼
+   m_cube_size = m_layer_size*m_hist_th_q_no; //åŸå§‹å›¾ç‰‡å…«ä¸ªæ–¹å‘çš„æ¢¯åº¦å›¾
 
    compute_cube_sigmas();
    compute_grid_points();
@@ -51,11 +51,11 @@ void daisy::set_parameters( double rad, int rad_q_no, int th_q_no, int hist_th_q
 ```
 ![](https://pic.downk.cc/item/5f6dd3a9160a154a67f00bf9.jpg)
 
-cubeÖ¸µÄÊÇG0
+cubeæŒ‡çš„æ˜¯G0
 
 ```
 
-¼ÆËãÃ¿Ò»¸öbinµÄÖĞĞÄÎ»ÖÃ
+è®¡ç®—æ¯ä¸€ä¸ªbinçš„ä¸­å¿ƒä½ç½®
 void daisy::compute_grid_points()
 {
    double r_step = m_rad / m_rad_q_no;
@@ -90,7 +90,7 @@ void daisy::compute_grid_points()
 
 ### layered_gradient
 
-ÌáÈ¡Ìİ¶È£¬8¸ö·½Ïò
+æå–æ¢¯åº¦ï¼Œ8ä¸ªæ–¹å‘
 
 ```
 
@@ -101,17 +101,17 @@ void daisy::compute_grid_points()
 
 ### compute_smoothed_gradient_layers
 
-Öğ´Î¼ÆËã¶à³ß¶ÈµÄÌİ¶ÈÍ¼
+é€æ¬¡è®¡ç®—å¤šå°ºåº¦çš„æ¢¯åº¦å›¾
 
 
 ### compute_histograms
 
-×¢Òâ£¬´úÂëÖĞ¼ÆËãÁËÌİ¶ÈÍ¼Ö®ºó£¬Ã¿´Î¾í»ı£¬Ïàµ±ÓÚ¾ÍÊÇÔÚ¼ÆËãhistogram£¬ÕâÀïµÄcompute_histgram
-Êµ¼ÊÉÏÖ»ÊÇ±ä»»µÄ´æ´¢Î»ÖÃ¡£
+æ³¨æ„ï¼Œä»£ç ä¸­è®¡ç®—äº†æ¢¯åº¦å›¾ä¹‹åï¼Œæ¯æ¬¡å·ç§¯ï¼Œç›¸å½“äºå°±æ˜¯åœ¨è®¡ç®—histogramï¼Œè¿™é‡Œçš„compute_histgram
+å®é™…ä¸Šåªæ˜¯å˜æ¢çš„å­˜å‚¨ä½ç½®ã€‚
 
 ### compute_histogram
 
-¼ÆËãÒ»¸öÏñËØµÄhist
+è®¡ç®—ä¸€ä¸ªåƒç´ çš„hist
 
 ### get_descriptor
 
@@ -129,7 +129,7 @@ void daisy::compute_grid_points()
 
 
 ```
-   //Ê¹ÓÃµ½µÄµ¥Ó¦±ä»»
+   //ä½¿ç”¨åˆ°çš„å•åº”å˜æ¢
    void point_transform_via_homography( double* H, double x, double y, double &u, double &v )
    {
       double kxp = H[0]*x + H[1]*y + H[2];
