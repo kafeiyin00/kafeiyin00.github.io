@@ -1,7 +1,7 @@
-﻿---
+---
 layout: post
 title: dense matching
-date: 2020-09-14
+date: 2020-09-28
 Author: jianping
 categories: 
 tags: [dense matching]
@@ -13,9 +13,110 @@ comments: false
 * Will be replaced with the ToC, excluding the "Contents" header
 {:toc}
 
-# DAISY
+# 1 Parameters used in Aerial triangulation
 
-## 1.parameters
+## 1.1 camera parameters
+
+```c++
+        // camera
+        std::map<std::string, size_t> img2pos; // image key -> image id
+        std::map<size_t, std::string> pos2img; // image id -> image key
+        std::vector<std::string> cams_filenames; 
+        std::vector<Eigen::Matrix3d> cams_rotation; // 摄影测量常用的规范, 实际对应 R_c_M
+        std::vector<Eigen::Matrix3d> cams_intrinsic; // K
+        std::vector<Eigen::MatrixXd> cams_projection; // camera model m = K [R|-Rt] X
+        std::vector<Eigen::Vector3d> cams_translation; // 摄影测量常用的规范, 实际对应 r_c_cM
+        std::vector<Eigen::Vector3d> cams_radial_dist; // 径向畸变
+        std::vector<Eigen::Vector2d> cams_tangential_dist; // 切向畸变
+
+```
+
+![](https://pic.downk.cc/item/5f717164160a154a67084c09.jpg)
+
+## 1.2 camera EOPS (used in inertial navigation)
+
+```c++
+        std::vector<Eigen::Vector3d> r_M_c;
+        std::vector<Eigen::Quaterniond> q_M_c;
+        Eigen::Vector3d pix4d_offset;
+```
+
+## 1.3 feature observations
+
+```c++
+		// feature observation
+        std::map<std::string, std::list<unsigned int> > featuresPerCam; // 当前相机key -> list<特征点id>
+        std::map<std::string, unsigned int> feat_key2id; // featurekey -> 特征点id
+        std::map<unsigned int, std::string> feat_id2key; // 特征点id -> featurekey 
+        std::map<unsigned int, bool> feat_valid;
+        std::map<unsigned int, Eigen::Vector3d> feat_pos3D; // 特征点id , 坐标 
+        std::vector<std::list<std::pair<size_t, Eigen::Vector2d> > > feat_observations; // 特征点id： <相机key, <2d 观测>>
+```
+
+# 2 Triangulation
+
+##  2.1 Initial value estimation
+
+注意，这里假设了观测是去除畸变的。对于空三来说，不去除畸变（未知的时候），先求出来一个初始值，也够BA用了。
+
+对于特征点$X$的一个位于相机$P_1$上的观测$x_1=[u_1,v_1,1]$
+$$
+x_1 \times P_{1} \cdot X = 0
+$$
+
+$$
+\begin{bmatrix}
+0 & -1 & v_1 \\
+1 & 0 &  -u1 \\
+-v_1 & u1 & 0
+\end{bmatrix} \cdot 
+
+\begin{bmatrix}
+P^{1}_{1} \cdot X \\
+P^{2}_{1} \cdot X \\
+P^{3}_{1} \cdot X 
+\end{bmatrix}
+=0
+$$
+
+取前两行(第三行可以由前两行得到)，可得：
+$$
+- P^{2}_{1} \cdot X + v_1 \cdot P^{3}_{1} \cdot X = 0 
+$$
+
+$$
+P^{1}_{1} \cdot X - u_1 \cdot P^{3}_{1} \cdot X = 0 
+$$
+
+整理一下
+$$
+\begin{bmatrix}
+-P^{2}_{1}+v_1P^{3}_{1} \\
+-P^{1}_{1}+u_1P^{3}_{1}
+\end{bmatrix} \cdot 
+X = 0
+$$
+
+$$
+\begin{bmatrix}
+0 & -1 & v_1 \\
+-1 & 0 & u_1
+\end{bmatrix} \cdot P_{1} \cdot X =0
+$$
+
+如果有n个观测，那么可以构造2*n个方程， 利用svd， 解算AtA.
+
+## 2.2 Bundle adjustment
+
+
+
+
+
+
+
+# 3 DAISY描述子
+
+## 3.1 parameters
 
 ![](https://pic.downk.cc/item/5f6dd29e160a154a67efc8c5.jpg)
 
@@ -86,7 +187,7 @@ void daisy::compute_grid_points()
 
 ```
 
-## 2.base functions
+## 3.2 base functions
 
 ### layered_gradient
 
