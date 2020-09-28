@@ -38,7 +38,7 @@ comments: false
 ```c++
         std::vector<Eigen::Vector3d> r_M_c;
         std::vector<Eigen::Quaterniond> q_M_c;
-        Eigen::Vector3d pix4d_offset;
+        Eigen::Vector3d offset;
 ```
 
 ## 1.3 feature observations
@@ -59,10 +59,14 @@ comments: false
 
 注意，这里假设了观测是去除畸变的。对于空三来说，不去除畸变（未知的时候），先求出来一个初始值，也够BA用了。
 
-对于特征点$X$的一个位于相机$P_1$上的观测$x_1=[u_1,v_1,1]$
+对于特征点 $X$ 的一个位于相机 $P_1$ 上的观测 $x_1=[u_1,v_1,1]$
+
+
 $$
 x_1 \times P_{1} \cdot X = 0
 $$
+
+
 
 $$
 \begin{bmatrix}
@@ -78,16 +82,18 @@ P^{3}_{1} \cdot X
 \end{bmatrix}
 =0
 $$
-
 取前两行(第三行可以由前两行得到)，可得：
-$$
-- P^{2}_{1} \cdot X + v_1 \cdot P^{3}_{1} \cdot X = 0 
-$$
+
 
 $$
-P^{1}_{1} \cdot X - u_1 \cdot P^{3}_{1} \cdot X = 0 
+- P^{2}_{1} \cdot X + v_1 \cdot P^{3}_{1} \cdot X = 0
 $$
 
+
+
+$$
+P^{1}_{1} \cdot X - u_1 \cdot P^{3}_{1} \cdot X = 0
+$$
 整理一下
 $$
 \begin{bmatrix}
@@ -96,6 +102,7 @@ $$
 \end{bmatrix} \cdot 
 X = 0
 $$
+
 
 $$
 \begin{bmatrix}
@@ -108,9 +115,11 @@ $$
 
 ## 2.2 Bundle adjustment
 
+已知 外方位，内方位，前方点初始值后，放到BA里重新计算前方点。
 
+当然，如果完全不知道各种初始值，就退化成SfM问题了，还得增量SfM，在这就不详细说了。
 
-
+![](https://pic.downk.cc/item/5f71d2b9160a154a672b9b6d.jpg)
 
 
 
@@ -128,7 +137,7 @@ $$
 
 8 -> hist_th_q_no 每个圈有8个梯度方向
 
-```
+```c++
 void daisy::set_parameters( double rad, int rad_q_no, int th_q_no, int hist_th_q_no )
 {
    m_rad = rad;                   // radius of the descriptor at the initial scale
@@ -154,7 +163,7 @@ void daisy::set_parameters( double rad, int rad_q_no, int th_q_no, int hist_th_q
 
 cube指的是G0
 
-```
+```c++
 
 计算每一个bin的中心位置
 void daisy::compute_grid_points()
@@ -193,7 +202,7 @@ void daisy::compute_grid_points()
 
 提取梯度，8个方向
 
-```
+```c++
 
     float* gradient_layers = new float[h * w * 8];
     kutility::layered_gradient(img_data, h, w, 8, gradient_layers);
@@ -216,7 +225,7 @@ void daisy::compute_grid_points()
 
 ### get_descriptor
 
-```
+```c++
    /// computes the descriptor at homography-warped grid. (y,x) is not the
    /// coordinates of this image but the coordinates of the original grid where
    /// the homography will be applied. Meaning that the grid is somewhere else
@@ -229,7 +238,7 @@ void daisy::compute_grid_points()
 ```
 
 
-```
+```c++
    //使用到的单应变换
    void point_transform_via_homography( double* H, double x, double y, double &u, double &v )
    {
@@ -241,3 +250,6 @@ void daisy::compute_grid_points()
    }
 
 ```
+
+# 4 Stereo Rectify
+
