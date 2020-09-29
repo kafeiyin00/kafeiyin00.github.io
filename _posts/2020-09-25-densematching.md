@@ -367,6 +367,10 @@ int main(int argc, char** argv)
 
 ## 4.7 Harris & DOG Feature detector
 
+
+
+初始化PATCH需要先在图像上检测一些角点，或者差分金字塔（DOG）响应点。
+
 ```c++
 
 	CdetectFeatures df;
@@ -381,6 +385,12 @@ LEVEL0：
 ![LEVEL0](https://pic.downk.cc/item/5f733c8b160a154a678b0e5d.jpg)
 
 LEVEL1：
+
+![](https://pic.downk.cc/item/5f733d91160a154a678b63a5.jpg)
+
+
+
+
 
 
 
