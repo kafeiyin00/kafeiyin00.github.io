@@ -1,4 +1,5 @@
 ---
+
 layout: post
 title: dense matching
 date: 2020-09-28
@@ -62,6 +63,7 @@ comments: false
 对于特征点 $X$ 的一个位于相机 $P_1$ 上的观测 $x_1=[u_1,v_1,1]$
 
 
+
 $$
 x_1 \times P_{1} \cdot X = 0
 $$
@@ -82,7 +84,10 @@ P^{3}_{1} \cdot X
 \end{bmatrix}
 =0
 $$
+
+
 取前两行(第三行可以由前两行得到)，可得：
+
 
 
 $$
@@ -91,10 +96,15 @@ $$
 
 
 
+
 $$
 P^{1}_{1} \cdot X - u_1 \cdot P^{3}_{1} \cdot X = 0
 $$
+
+
 整理一下
+
+
 $$
 \begin{bmatrix}
 -P^{2}_{1}+v_1P^{3}_{1} \\
@@ -102,6 +112,11 @@ $$
 \end{bmatrix} \cdot 
 X = 0
 $$
+
+
+
+
+
 
 
 $$
@@ -251,5 +266,133 @@ void daisy::compute_grid_points()
 
 ```
 
-# 4 Stereo Rectify
+# 4 Patch Based Stereo
+
+## 4.1 Undistort Images 
+
+
+
+## 4.2 Calculate Projection Matrix
+
+```
+CONTOUR // header
+2563.3785486 2002.09943502 175.909287694 -2576.79680462 
+1227.12336166 -309.431464381 2694.1963878 -1537.18385803 
+0.965449284333 -0.244965622232 0.088885968683 -0.973456905582 // Pojection Matrix
+```
+
+## 4.3 Group File
+
+```
+SKE // header
+7 1 
+7 0
+0 1 2 3 4 5 6 
+```
+
+## 4.4 Vis File
+
+```
+VISDATA // header
+7 // 照片总数
+0 4  3 4 2 1 // 照片ID 邻接个数 邻接照片ID1 邻接照片ID2 邻接照片ID3
+1 6  6 3 2 5 4 0 
+2 6  4 5 1 3 0 6 
+3 6  0 1 4 2 5 6 
+4 6  2 0 3 1 5 6 
+5 5  2 6 1 3 4 
+6 5  1 5 2 3 4 
+```
+
+## 4.5 Image loader
+
+```c++
+	Image::Cphoto photo;
+	photo.init(name, mname, ename, cname, 3); // 图片名，mask名，edge名，camera名，尺度
+	photo.alloc(); // alloc 之后才会加载图片，对应free
+
+	std::vector<unsigned char>& imagedata0 = photo.getImage(0); // 加载不同尺度，存储方式为RGB，RGB
+	std::vector<unsigned char>& imagedata1 = photo.getImage(1); 
+
+	Image::CphotoSetS pss; // photo 的集合
+	std::vector<int>images;
+	for (int i = 0; i < 5; i++)
+	{
+		images.push_back(i);
+	}
+	int level = 3;
+	int windowSize = 7;
+	pss.init(images, prefix, level, windowSize, 1); // 初始化一个photo集合
+
+```
+
+## 4.6 Multi-thread
+
+对于特征提取这种步骤，应该用多线程去并行，一个小例子
+
+```c++
+#include "tinycthread/tinycthread.h"
+#include "tinycthread/rwmutex.h"
+
+using namespace std;
+mtx_t m_rwlock;
+static int count_i = 0;
+
+int thread_func(void * argc)
+{
+	int * threadId = (int*)argc;
+	for (int i = 0; i < 1000; i++)
+	{
+		mtx_lock(&m_rwlock);
+		count_i = count_i + 1;
+		std::cout << "hello: " << count_i << " from thread "<< *threadId <<"\n";
+		mtx_unlock(&m_rwlock);
+	}	
+	return 0;
+}
+
+int main(int argc, char** argv)
+{
+	int m_CPU = 6;
+	mtx_init(&m_rwlock, mtx_plain | mtx_recursive);
+	vector<thrd_t> threads(m_CPU);
+	for (int i = 0; i < m_CPU; ++i)
+		thrd_create(&threads[i], thread_func, (void*)(&i));
+	for (int i = 0; i < m_CPU; ++i)
+		thrd_join(threads[i], NULL);
+
+	mtx_destroy(&m_rwlock);
+}
+```
+
+## 4.7 Harris & DOG Feature detector
+
+```c++
+
+	CdetectFeatures df;
+	const int fcsize = 16;
+
+	int detectLevel = 0; //detectLevel 越大，指的是降采样的图像上检测
+	df.run(pss, 5, fcsize, detectLevel, 6);
+```
+
+LEVEL0：
+
+![LEVEL0](https://pic.downk.cc/item/5f733c8b160a154a678b0e5d.jpg)
+
+LEVEL1：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
