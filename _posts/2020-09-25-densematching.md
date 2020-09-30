@@ -270,13 +270,17 @@ void daisy::compute_grid_points()
 
 ## 4.1 Undistort Images 
 
+Multiview stereo 一般是将相片去畸变之后再处理的。 因为采用Patch-based，可以不去做stereo-rectify
+
+
+
 
 
 ## 4.2 Calculate Projection Matrix
 
 旋转矩阵和投影矩阵的特性：
 
-1. 旋转矩阵  $R^{M}_c$  和一个相机系下向量 $[0,0,1]^{T}$  (也就是相机主轴)，那么 $R^{M}_c /cdot$ 就是选择了$R^{M}_c$ 的第三列。 也就是说  $R^{M}_c$ 的第三列为世界坐标系下的相机主光轴。
+1. 旋转矩阵  $R^{M}_c$  和一个相机系下向量 $[0,0,1]^{T}$  (也就是相机主轴)，那么 $R^{M}_c  /cdot  [0,0,1]^{T} $ 就是选择了$R^{M}_c$ 的第三列。 也就是说  $R^{M}_c$ 的第三列为世界坐标系下的相机主光轴。
 
 2.  $R^{c}_M$  的第三行为 世界坐标系下的相机主光轴，x轴和y轴分别是第一行和第二行
 
