@@ -274,6 +274,113 @@ void daisy::compute_grid_points()
 
 ## 4.2 Calculate Projection Matrix
 
+旋转矩阵和投影矩阵的特性：
+
+1. 旋转矩阵  $R^{M}_c$  和一个相机系下向量 $[0,0,1]^{T}$  (也就是相机主轴)，那么 $R^{M}_c /cdot$ 就是选择了$R^{M}_c$ 的第三列。 也就是说  $R^{M}_c$ 的第三列为世界坐标系下的相机主光轴。
+
+2.  $R^{c}_M$  的第三行为 世界坐标系下的相机主光轴，x轴和y轴分别是第一行和第二行
+
+3. 从投影矩阵得到主光轴
+
+   投影矩阵如下：
+
+   
+
+
+$$
+P=K[R^{c}_M|r^{c}_{cM}], K=\begin{bmatrix}
+f_x & 0 & c_x \\
+0 & f_y &  c_y \\
+0 & 0 & 1
+\end{bmatrix}
+$$
+
+
+​					注意第三行，因为 $K$ 的第三行是$ [0,0,1] $ , 所以，$ P $ 的第三行的前三个元素就是世界坐标系下的相机主光轴
+
+4. 从投影矩阵得到x轴和y轴
+
+   
+
+   
+
+   
+   $$
+   R^{c}_M=\begin{bmatrix}
+   R_1 \\
+   R_2 \\
+   R_3
+   \end{bmatrix},P_{3\times4}=K\cdot [R^{c}_M|r^{c}_{cM}]=\begin{bmatrix}
+   f_x & 0 & c_x \\
+   0 & f_y &  c_y \\
+   0 & 0 & 1
+   \end{bmatrix} \cdot
+   \begin{bmatrix}
+   R_1 & t1 \\
+   R_2 & t_2 \\
+   R_3 & t_3
+   \end{bmatrix}
+   =
+   \begin{bmatrix}
+   f_xR_1 + c_x R_3 & f_x t_1 + c_x t_3\\
+   f_yR_2 + c_y R_3 & f_y t_2 + c_y t_3\\
+   R_3 & t_3
+   \end{bmatrix}
+   $$
+   
+
+   
+   $$
+   P_{1\times3}(0,0) \times P_{1\times3}(2,0) =
+   f_x[R_3]_{\times}\cdot R_1^{T} + c_x[R_3]_{\times} \cdot R_3^{T}=f_x[R_3]_{\times}\cdot R_1^{T}
+   $$
+   
+
+   
+
+   也就是说，把第一行和第三行叉乘，可以得到y轴向量，注意要除以模长。得到了z轴和y轴，两者叉乘就得到了x轴。
+
+   
+
+5. 从投影矩阵得到相机中心
+
+   这里验证结论，太感谢计算机视觉领域多年的积累了。
+
+   
+
+   
+   $$
+   r^{M}_c = - P_{3\times3}(0,0)^{-1} \cdot P_{3\times1}(0,3)
+   $$
+   
+
+   下面验证：
+
+   
+
+$$
+P_{3\times3}(0,0)^{-1} = (K \cdot R^{c}_M)^{-1} = R^{M}_c \cdot K^{-1} = R^{M}_c \cdot \begin{bmatrix}
+1/f_x & 0 & -c_x/f_x \\
+0 & 1/f_x  & -c_y/f_y \\
+0 & 0 & 1
+\end{bmatrix}
+$$
+
+
+$$
+- P_{3\times3}(0,0)^{-1} \cdot P_{3\times1}(0,3)=R^{M}_c \cdot \begin{bmatrix}
+t_1\\
+t_2 \\
+t_3
+\end{bmatrix}
+= r^{M}_c
+$$
+
+
+ Projection file 保存如下格式：
+
+
+
 ```
 CONTOUR // header
 2563.3785486 2002.09943502 175.909287694 -2576.79680462 
@@ -389,6 +496,8 @@ LEVEL1：
 ![](https://pic.downk.cc/item/5f733d91160a154a678b63a5.jpg)
 
 
+
+## 4.8 Patch Optimizer
 
 
 
