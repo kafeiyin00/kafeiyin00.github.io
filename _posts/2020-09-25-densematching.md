@@ -565,9 +565,39 @@ s.t. x_2 \ge (a_1 x_1+b_1)^{3}, a_1=2,b_1=0\\
 $$
 
 
+```c++
+
+int main() {
+    double lb[2] = { -HUGE_VAL, 0 }; /* lower bounds */
+    double ub[2] = { HUGE_VAL, HUGE_VAL }; /* lower bounds */
+    nlopt_opt opt;
+
+    opt = nlopt_create(NLOPT_LD_MMA, 2); /* algorithm and dimensionality */
+    nlopt_set_lower_bounds(opt, lb);
+    nlopt_set_upper_bounds(opt, ub);
+    nlopt_set_min_objective(opt, myfunc, NULL);
+
+    my_constraint_data data[2] = { {2,0}, {-1,1} };
+
+    nlopt_add_inequality_constraint(opt, myconstraint, &data[0], 1e-8);
+    nlopt_add_inequality_constraint(opt, myconstraint, &data[1], 1e-8);
+
+    nlopt_set_xtol_rel(opt, 1e-4);
+
+    double x[2] = { 1.234, 5.678 };  /* `*`some` `initial` `guess`*` */
+    double minf; /* `*`the` `minimum` `objective` `value,` `upon` `return`*` */
+    if (nlopt_optimize(opt, x, &minf) < 0) {
+        printf("nlopt failed!\n");
+    }
+    else {
+        printf("found minimum at f(%g,%g) = %0.10g\n", x[0], x[1], minf);
+    }
+
+    nlopt_destroy(opt);
+}
 
 
-
+```
 
 
 
