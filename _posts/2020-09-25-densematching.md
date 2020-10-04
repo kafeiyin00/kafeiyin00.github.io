@@ -606,7 +606,257 @@ int main() {
 
 
 
+待优化参数的参数化
 
+
+
+```
+
+void Coptim::encode(const Vec4f& coord,
+		    double* const vect, const int id) const {
+  vect[0] = (coord - m_centersT[id]) * m_raysT[id] / m_dscalesT[id];
+}
+
+void Coptim::encode(const Vec4f& coord, const Vec4f& normal,
+		    double* const vect, const int id) const {
+  encode(coord, vect, id);
+  
+  const int image = m_indexesT[id][0];
+  const float fx = m_xaxes[image] * proj(normal); // projects from 4D to 3D, divide by last value
+  const float fy = m_yaxes[image] * proj(normal);
+  const float fz = m_zaxes[image] * proj(normal);
+
+  vect[2] = asin(max(-1.0f, min(1.0f, fy)));
+  const float cosb = cos(vect[2]);
+
+  if (cosb == 0.0)
+    vect[1] = 0.0;
+  else {
+    const float sina = fx / cosb;
+    const float cosa = - fz / cosb;
+    vect[1] = acos(max(-1.0f, min(1.0f, cosa)));
+    if (sina < 0.0)
+      vect[1] = - vect[1];
+  }
+
+  vect[1] = vect[1] / m_ascalesT[id];
+  vect[2] = vect[2] / m_ascalesT[id];  
+}
+
+void Coptim::decode(Vec4f& coord, Vec4f& normal,
+		    const double* const vect, const int id) const {
+  decode(coord, vect, id);
+  const int image = m_indexesT[id][0];
+
+  const float angle1 = vect[1] * m_ascalesT[id];
+  const float angle2 = vect[2] * m_ascalesT[id];
+
+  const float fx = sin(angle1) * cos(angle2);
+  const float fy = sin(angle2);
+  const float fz = - cos(angle1) * cos(angle2);
+
+  Vec3f ftmp = m_xaxes[image] * fx + m_yaxes[image] * fy + m_zaxes[image] * fz;
+  normal = Vec4f(ftmp[0], ftmp[1], ftmp[2], 0.0f);
+}
+
+void Coptim::decode(Vec4f& coord, const double* const vect, const int id) const {
+  coord = m_centersT[id] + m_dscalesT[id] * vect[0] * m_raysT[id];
+}
+```
+
+
+
+
+
+
+
+
+
+```c++
+
+
+//----------------------------------------------------------------------
+// BFGS functions
+//----------------------------------------------------------------------
+
+double Coptim::my_f(unsigned n, const double *x, double *grad, void *my_func_data)
+{
+  double xs[3] = {x[0], x[1], x[2]};
+  const int id = *((int*)my_func_data);
+
+  const float angle1 = xs[1] * m_one->m_ascalesT[id];
+  const float angle2 = xs[2] * m_one->m_ascalesT[id];
+
+  double ret = 0.0;
+
+  //?????
+  const double bias = 0.0f;//2.0 - exp(- angle1 * angle1 / sigma2) - exp(- angle2 * angle2 / sigma2);
+  
+  Vec4f coord, normal;
+  m_one->decode(coord, normal, xs, id);
+  
+  const int index = m_one->m_indexesT[id][0];
+  Vec4f pxaxis, pyaxis;
+  m_one->getPAxes(index, coord, normal, pxaxis, pyaxis);
+  
+  const int size = min(m_one->m_fm.m_tau, (int)m_one->m_indexesT[id].size());
+  const int mininum = min(m_one->m_fm.m_minImageNumThreshold, size);
+
+  for (int i = 0; i < size; ++i) {
+    int flag;
+    flag = m_one->grabTex(coord, pxaxis, pyaxis, normal, m_one->m_indexesT[id][i],
+                          m_one->m_fm.m_wsize, m_one->m_texsT[id][i]);
+
+    if (flag == 0)
+      m_one->normalize(m_one->m_texsT[id][i]);
+  }
+
+  const int pairwise = 0;
+  if (pairwise) {
+    double ans = 0.0f;
+    int denom = 0;
+    for (int i = 0; i < size; ++i) {
+      for (int j = i+1; j < size; ++j) {
+        if (m_one->m_texsT[id][i].empty() || m_one->m_texsT[id][j].empty())
+          continue;
+        
+        ans += robustincc(1.0 - m_one->dot(m_one->m_texsT[id][i], m_one->m_texsT[id][j]));
+        denom++;
+      }
+    }
+    if (denom <
+        //m_one->m_fm.m_minImageNumThreshold *
+        //(m_one->m_fm.m_minImageNumThreshold - 1) / 2)
+        mininum * (mininum - 1) / 2)
+      ret = 2.0f;
+    else
+      ret = ans / denom + bias;
+  }
+  else {
+    if (m_one->m_texsT[id][0].empty())
+      return 2.0;
+      
+    double ans = 0.0f;
+    int denom = 0;
+    for (int i = 1; i < size; ++i) {
+      if (m_one->m_texsT[id][i].empty())
+        continue;
+      ans +=
+        robustincc(1.0 - m_one->dot(m_one->m_texsT[id][0], m_one->m_texsT[id][i]));
+      denom++;
+    }
+    //if (denom < m_one->m_fm.m_minImageNumThreshold - 1)
+    if (denom < mininum - 1)
+      ret = 2.0f;
+    else
+      ret = ans / denom + bias;
+  }
+
+  return ret;
+}
+
+
+```
+
+
+
+
+
+得到patch的x和y轴，注意，x和y轴是带尺度的，相对于image[index], 单位pxaxis刚好投影后差一个像素
+
+
+
+```c++
+
+// get x and y axis to collect textures given reference image and normal
+void Coptim::getPAxes(const int index, const Vec4f& coord, const Vec4f& normal,
+		      Vec4f& pxaxis, Vec4f& pyaxis) const{  
+  // yasu changed here for fpmvs
+  const float pscale = getUnit(index, coord);
+
+  Vec3f normal3(normal[0], normal[1], normal[2]);
+  Vec3f yaxis3 = cross(normal3, m_xaxes[index]);
+  unitize(yaxis3);
+  Vec3f xaxis3 = cross(yaxis3, normal3);
+  pxaxis[0] = xaxis3[0];  pxaxis[1] = xaxis3[1];  pxaxis[2] = xaxis3[2];  pxaxis[3] = 0.0;
+  pyaxis[0] = yaxis3[0];  pyaxis[1] = yaxis3[1];  pyaxis[2] = yaxis3[2];  pyaxis[3] = 0.0;
+
+  pxaxis *= pscale;
+  pyaxis *= pscale;
+  const float xdis = norm(m_fm.m_pss.project(index, coord + pxaxis, m_fm.m_level) -
+                          m_fm.m_pss.project(index, coord, m_fm.m_level));
+  const float ydis = norm(m_fm.m_pss.project(index, coord + pyaxis, m_fm.m_level) -
+                          m_fm.m_pss.project(index, coord, m_fm.m_level));
+  pxaxis /= xdis;
+  pyaxis /= ydis;
+}
+
+```
+
+获取patch纹理信息：
+
+输入是patch 的coord，三个方向向量：pxaxis, pyaxis, pzaxis， 注意pxaxis, pyaxis是和当前相机的x，y轴对齐的
+
+```c++
+
+int Coptim::grabTex(const Vec4f& coord, const Vec4f& pxaxis, const Vec4f& pyaxis,
+		    const Vec4f& pzaxis, const int index, const int size,
+                    std::vector<float>& tex) const {
+  tex.clear();
+
+  Vec4f ray = m_fm.m_pss.m_photos[index].m_center - coord;
+  unitize(ray);
+  const float weight = max(0.0f, ray * pzaxis);
+
+  //???????
+  //if (weight < cos(m_fm.m_angleThreshold0))
+  if (weight < cos(m_fm.m_angleThreshold1))
+    return 1;
+
+  const int margin = size / 2;
+
+  Vec3f center = m_fm.m_pss.project(index, coord, m_fm.m_level);  
+  Vec3f dx = m_fm.m_pss.project(index, coord + pxaxis, m_fm.m_level) - center;
+  Vec3f dy = m_fm.m_pss.project(index, coord + pyaxis, m_fm.m_level) - center;
+  
+  const float ratio = (norm(dx) + norm(dy)) / 2.0f;
+  //int leveldif = (int)floor(log(ratio) / log(2.0f) + 0.5f);
+  int leveldif = (int)floor(log(ratio) / Log2 + 0.5f);
+
+  // Upper limit is 2
+  leveldif = max(-m_fm.m_level, min(2, leveldif));
+
+  //const float scale = pow(2.0f, (float)leveldif);
+
+  const float scale = MyPow2(leveldif);
+  const int newlevel = m_fm.m_level + leveldif; // 这里的采样方式是先确定尺度，再把dx，dy，center归一化
+
+  center /= scale;  dx /= scale;  dy /= scale;
+  
+  if (grabSafe(index, size, center, dx, dy, newlevel) == 0) // 检查投影的patch最大最小值是否在图像范围内
+    return 1;
+  
+  Vec3f left = center - dx * margin - dy * margin;
+
+  tex.resize(3 * size * size);
+  float* texp = &tex[0] - 1;
+  for (int y = 0; y < size; ++y) {
+    Vec3f vftmp = left;
+    left += dy;
+    for (int x = 0; x < size; ++x) {
+      Vec3f color = m_fm.m_pss.getColor(index, vftmp[0], vftmp[1], newlevel);
+      *(++texp) = color[0];
+      *(++texp) = color[1];
+      *(++texp) = color[2];
+      vftmp += dx;
+    }
+  }
+  
+  return 0;
+}
+
+
+```
 
 
 
