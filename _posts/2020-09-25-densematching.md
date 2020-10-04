@@ -606,13 +606,13 @@ int main() {
 
 
 
-待优化参数的参数化
+待优化参数的参数化， coord-> 3个参数，norm->3个参数，为了降低搜索空间（其实和李群李代数一个道理），把待解算参数空间缩小到3个（一个深度，航向，俯仰）
 
 
 
-```
+```c++
 
-void Coptim::encode(const Vec4f& coord,
+void Coptim::encode(const Vec4f& coord,  // 深度，注意是m_raysT是参考相机观测到patch的光线
 		    double* const vect, const int id) const {
   vect[0] = (coord - m_centersT[id]) * m_raysT[id] / m_dscalesT[id];
 }
@@ -624,9 +624,9 @@ void Coptim::encode(const Vec4f& coord, const Vec4f& normal,
   const int image = m_indexesT[id][0];
   const float fx = m_xaxes[image] * proj(normal); // projects from 4D to 3D, divide by last value
   const float fy = m_yaxes[image] * proj(normal);
-  const float fz = m_zaxes[image] * proj(normal);
+  const float fz = m_zaxes[image] * proj(normal); // 计算法向量到相机三个轴的投影
 
-  vect[2] = asin(max(-1.0f, min(1.0f, fy)));
+  vect[2] = asin(max(-1.0f, min(1.0f, fy))); // 可以理解为计算经纬度
   const float cosb = cos(vect[2]);
 
   if (cosb == 0.0)
@@ -663,12 +663,6 @@ void Coptim::decode(Vec4f& coord, const double* const vect, const int id) const 
   coord = m_centersT[id] + m_dscalesT[id] * vect[0] * m_raysT[id];
 }
 ```
-
-
-
-
-
-
 
 
 
