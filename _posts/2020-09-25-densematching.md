@@ -489,6 +489,7 @@ int main(int argc, char** argv)
 
 	int detectLevel = 0; //detectLevel 越大，指的是降采样的图像上检测
 	df.run(pss, 5, fcsize, detectLevel, 6);
+
 ```
 
 LEVEL0：
@@ -501,7 +502,77 @@ LEVEL1：
 
 
 
-## 4.8 Patch Optimizer
+## 4.8 No-linear Optimization
+
+对于带边界条件，代价函数导数无法确定的优化问题，需要特殊的方式求解，这个与LM+最小二乘不一致。
+
+### 4.8.1 An example
+
+
+$$
+min f= (x_2)^{1/2} \\
+s.t. x_2 \ge 0 \\
+s.t. x_2 \ge (a_1 x_1+b_1)^{3}, a_1=2,b_1=0\\
+s.t. x_2 \ge (a_2 x_1+b_2)^{3}, a_2=-1,b_2=1 \\
+$$
+
+ 
+
+优化问题的可行域如下：
+
+
+
+![](https://pic.downk.cc/item/5f798ec2160a154a6752fd05.jpg)
+
+定义代价函数和约束条件：
+
+```c++
+
+double myfunc(unsigned n, const double* x, double* grad, void* my_func_data)
+{
+    if (grad) {
+        grad[0] = 0.0;
+        grad[1] = 0.5 / sqrt(x[1]);
+    }
+    return sqrt(x[1]);
+}
+
+typedef struct {
+    double a, b;
+} my_constraint_data;
+
+double myconstraint(unsigned n, const double* x, double* grad, void* data)
+{
+    my_constraint_data* d = (my_constraint_data*)data;
+    double a = d->a, b = d->b;
+    if (grad) {
+        grad[0] = 3 * a * (a * x[0] + b) * (a * x[0] + b);
+        grad[1] = -1.0;
+    }
+    return ((a * x[0] + b) * (a * x[0] + b) * (a * x[0] + b) - x[1]);
+}
+
+```
+
+grad 也可以不管，对于不需要梯度的算法
+
+对于约束条件，默认为fx <= 0, 因此做以下调整：
+
+
+$$
+s.t. x_2 \ge (a_1 x_1+b_1)^{3}, a_1=2,b_1=0\\
+==> 0 \ge (a_1 x_1+b_1)^{3}-x_2
+$$
+
+
+
+
+
+
+
+
+
+## 4.9 Patch Optimizer
 
 
 
