@@ -502,11 +502,204 @@ LEVEL1：
 
 
 
-## 4.8 No-linear Optimization
+
+
+## 4.8 Patch Initialization (seed generation)
+
+
+
+### 4.8.1 initialMatch  
+
+
+
+### 4.8.2 collectCandidates
+
+```c++
+
+void collectCandidates(const int index, const std::vector<int>& indexes,
+                         const Cpoint& point, std::vector<Ppoint>& vcp); 
+
+
+///  reference image id
+///  target image ids
+///  reference point
+///  candidate points
+```
+
+由相机投影矩阵确定F：
+
+```c++
+
+template<class T>
+void setF(const Image::Ccamera& lhs, const Image::Ccamera& rhs,
+	  TMat3<T>& F, const int level = 0) {
+  const TVec4<T>& p00 = lhs.m_projection[level][0];
+  const TVec4<T>& p01 = lhs.m_projection[level][1];
+  const TVec4<T>& p02 = lhs.m_projection[level][2];
+
+  const TVec4<T>& p10 = rhs.m_projection[level][0];
+  const TVec4<T>& p11 = rhs.m_projection[level][1];
+  const TVec4<T>& p12 = rhs.m_projection[level][2];
+
+  F[0][0] = det(TMat4<T>(p01, p02, p11, p12));
+  F[0][1] = det(TMat4<T>(p01, p02, p12, p10));
+  F[0][2] = det(TMat4<T>(p01, p02, p10, p11));
+
+  F[1][0] = det(TMat4<T>(p02, p00, p11, p12));
+  F[1][1] = det(TMat4<T>(p02, p00, p12, p10));
+  F[1][2] = det(TMat4<T>(p02, p00, p10, p11));
+
+  F[2][0] = det(TMat4<T>(p00, p01, p11, p12));
+  F[2][1] = det(TMat4<T>(p00, p01, p12, p10));
+  F[2][2] = det(TMat4<T>(p00, p01, p10, p11));
+ };
+
+```
+
+推导下由 $P_1$ ,  $P_2$ ,  得到 $ F $ , 常见公式如下： 而上面的公式，暂时打个问号。
+
+![](https://pic.downk.cc/item/5f7ac986160a154a679fdf85.jpg)
+
+collectCandidates 完成了由参考影像上某一个特征点，寻找满足F矩阵关系的其他影像上的特征点。
+
+```c++
+
+// make sorted array of feature points in images, that satisfy the
+// epipolar geometry coming from point in image
+void Cseed::collectCandidates(const int index, const std::vector<int>& indexes,
+                              const Cpoint& point, std::vector<Ppoint>& vcp) {
+  const Vec3 p0(point.m_icoord[0], point.m_icoord[1], 1.0);
+  for (int i = 0; i < (int)indexes.size(); ++i) {        
+    const int indexid = indexes[i];
+    
+    vector<TVec2<int> > cells;
+    collectCells(index, indexid, point, cells);
+    Mat3 F;
+    Image::setF(m_fm.m_pss.m_photos[index], m_fm.m_pss.m_photos[indexid],
+                F, m_fm.m_level);
+    
+    for (int i = 0; i < (int)cells.size(); ++i) {
+      const int x = cells[i][0];      const int y = cells[i][1];
+      if (!canAdd(indexid, x, y))
+	continue;
+      const int index2 = y * m_fm.m_pos.m_gwidths[indexid] + x;
+
+      vector<Ppoint>::iterator begin = m_ppoints[indexid][index2].begin();
+      vector<Ppoint>::iterator end = m_ppoints[indexid][index2].end();
+      while (begin != end) {
+        Cpoint& rhs = **begin;
+        // ? use type to reject candidates?
+        if (point.m_type != rhs.m_type) {
+          ++begin;
+          continue;
+        }
+          
+        const Vec3 p1(rhs.m_icoord[0], rhs.m_icoord[1], 1.0);
+        if (m_fm.m_epThreshold <= Image::computeEPD(F, p0, p1)) {
+          ++begin;          
+          continue;
+        }
+        vcp.push_back(*begin);
+        ++begin;
+      }
+    }
+  }
+  
+  // set distances to m_response
+  vector<Ppoint> vcptmp;
+  for (int i = 0; i < (int)vcp.size(); ++i) {
+    unproject(index, vcp[i]->m_itmp, point, *vcp[i], vcp[i]->m_coord);
+    
+    if (m_fm.m_pss.m_photos[index].m_projection[m_fm.m_level][2] *
+        vcp[i]->m_coord <= 0.0)
+      continue;
+
+    if (m_fm.m_pss.getMask(vcp[i]->m_coord, m_fm.m_level) == 0 ||
+        m_fm.insideBimages(vcp[i]->m_coord) == 0)
+      continue;
+
+    //??? from the closest
+    vcp[i]->m_response =
+      fabs(norm(vcp[i]->m_coord - m_fm.m_pss.m_photos[index].m_center) -
+           norm(vcp[i]->m_coord - m_fm.m_pss.m_photos[vcp[i]->m_itmp].m_center));
+    
+    vcptmp.push_back(vcp[i]);
+  }
+  vcptmp.swap(vcp);
+  sort(vcp.begin(), vcp.end());
+}
+```
+
+collectCells 的作用是先把极线上的cell给取出来
+
+ ```c++
+
+void Cseed::collectCells(const int index0, const int index1,
+                         const Cpoint& p0, std::vector<Vec2i>& cells) {
+  Vec3 point(p0.m_icoord[0], p0.m_icoord[1], p0.m_icoord[2]);
+#ifdef DEBUG
+  if (p0.m_icoord[2] != 1.0f) {
+    cerr << "Impossible in collectCells" << endl;    exit (1);
+  }
+#endif
+  
+  Mat3 F;
+  Image::setF(m_fm.m_pss.m_photos[index0], m_fm.m_pss.m_photos[index1],
+              F, m_fm.m_level);
+  const int gwidth = m_fm.m_pos.m_gwidths[index1];
+  const int gheight = m_fm.m_pos.m_gheights[index1];
+  
+  Vec3 line = transpose(F) * point;
+  if (line[0] == 0.0 && line[1] == 0.0) {
+    cerr << "Point right on top of the epipole?"
+         << index0 << ' ' << index1 << endl;
+    return;
+  }
+  // vertical
+  if (fabs(line[0]) > fabs(line[1])) {
+    for (int y = 0; y < gheight; ++y) {
+      const float fy = (y + 0.5) * m_fm.m_csize - 0.5f;
+      float fx = (- line[1] * fy - line[2]) / line[0];
+      fx = max((float)(INT_MIN + 3.0f), std::min((float)(INT_MAX - 3.0f), fx));
+      
+      const int ix = ((int)floor(fx + 0.5f)) / m_fm.m_csize;
+      if (0 <= ix && ix < gwidth)
+        cells.push_back(TVec2<int>(ix, y));
+      if (0 <= ix - 1 && ix - 1 < gwidth)
+        cells.push_back(TVec2<int>(ix - 1, y));
+      if (0 <= ix + 1 && ix + 1 < gwidth)
+        cells.push_back(TVec2<int>(ix + 1, y));
+    }
+  }
+  else {
+    for (int x = 0; x < gwidth; ++x) {
+      const float fx = (x + 0.5) * m_fm.m_csize - 0.5f;
+      float fy = (- line[0] * fx - line[2]) / line[1];
+      fy = max((float)(INT_MIN + 3.0f), std::min((float)(INT_MAX - 3.0f), fy));
+      
+      const int iy = ((int)floor(fy + 0.5f)) / m_fm.m_csize;
+      if (0 <= iy && iy < gheight)
+        cells.push_back(TVec2<int>(x, iy));
+      if (0 <= iy - 1 && iy - 1 < gheight)
+        cells.push_back(TVec2<int>(x, iy - 1));
+      if (0 <= iy + 1 && iy + 1 < gheight)
+        cells.push_back(TVec2<int>(x, iy + 1));
+    }
+  }
+}
+ ```
+
+
+
+
+
+
+
+## 4.9 No-linear Optimization
 
 对于带边界条件，代价函数导数无法确定的优化问题，需要特殊的方式求解，这个与LM+最小二乘不一致。
 
-### 4.8.1 An example
+### 4.9.1 An example
 
 
 $$
@@ -599,10 +792,7 @@ int main() {
 
 ```
 
-
-
-
-## 4.9 Patch Optimizer
+### 4.9.2 Patch Optimizer
 
 
 
@@ -751,10 +941,6 @@ double Coptim::my_f(unsigned n, const double *x, double *grad, void *my_func_dat
 
 
 ```
-
-
-
-
 
 得到patch的x和y轴，注意，x和y轴是带尺度的，相对于image[index], 单位pxaxis刚好投影后差一个像素
 
