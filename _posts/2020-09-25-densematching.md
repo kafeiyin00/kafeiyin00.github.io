@@ -138,6 +138,66 @@ $$
 
 
 
+## 2.3 CC block Exchange File
+
+
+
+将空三文件保存为通用存储格式，如下：
+
+
+
+BlockExchange
+
+​			SpatialReferenceSystems->SRS(Id,Name,Definition)
+
+​			Block(Name,Description,SRSId,Photogroups)
+
+​						Photogroups->Photogroup
+
+​						ImageDimensions(Width,Height)
+
+​						CameraModelType
+
+​						CameraModelBand
+
+​						FocalLengthPixels
+
+​						PrincipalPoint(x,y)
+
+​						Distortion(K1,K2,K3,P1,P2)
+
+​						AspectRatio
+
+​						Skew
+
+​						Photo
+
+​			Photo比较复杂：
+
+Photo
+
+​			Id
+
+​			ImagePath
+
+​			Component
+
+​			Pose(Rotation[M_00,M_01,...,M_22],Center[x,y,z],Metadata[SRSID,Center],ExifData)
+
+​	
+
+​			TiePoints->TiePoint
+
+​						Position(x,y,z)
+
+​						Color(Red,Green,Blue)
+
+​						Measurement(PhotoId,x,y)
+
+
+
+
+
 # 3 DAISY描述子
 
 ## 3.1 parameters
@@ -508,9 +568,13 @@ LEVEL1：
 
 
 
-### 4.8.1 initialMatch  
+### 4.8.1 Patch organizer (CpatchOrganizerS)
 
+ addPatch() 函数把当前patch 加入所有相关的image 中
 
+updateDepthMaps(ppatch) 把当前patch相关的深度图更新
+
+collectPatches 把当前所有影像中的patch放入m_ppatches，可能是有重复的
 
 ### 4.8.2 collectCandidates
 
@@ -567,67 +631,7 @@ collectCandidates 完成了由参考影像上某一个特征点，寻找满足F�
 // make sorted array of feature points in images, that satisfy the
 // epipolar geometry coming from point in image
 void Cseed::collectCandidates(const int index, const std::vector<int>& indexes,
-                              const Cpoint& point, std::vector<Ppoint>& vcp) {
-  const Vec3 p0(point.m_icoord[0], point.m_icoord[1], 1.0);
-  for (int i = 0; i < (int)indexes.size(); ++i) {        
-    const int indexid = indexes[i];
-    
-    vector<TVec2<int> > cells;
-    collectCells(index, indexid, point, cells);
-    Mat3 F;
-    Image::setF(m_fm.m_pss.m_photos[index], m_fm.m_pss.m_photos[indexid],
-                F, m_fm.m_level);
-    
-    for (int i = 0; i < (int)cells.size(); ++i) {
-      const int x = cells[i][0];      const int y = cells[i][1];
-      if (!canAdd(indexid, x, y))
-	continue;
-      const int index2 = y * m_fm.m_pos.m_gwidths[indexid] + x;
-
-      vector<Ppoint>::iterator begin = m_ppoints[indexid][index2].begin();
-      vector<Ppoint>::iterator end = m_ppoints[indexid][index2].end();
-      while (begin != end) {
-        Cpoint& rhs = **begin;
-        // ? use type to reject candidates?
-        if (point.m_type != rhs.m_type) {
-          ++begin;
-          continue;
-        }
-          
-        const Vec3 p1(rhs.m_icoord[0], rhs.m_icoord[1], 1.0);
-        if (m_fm.m_epThreshold <= Image::computeEPD(F, p0, p1)) {
-          ++begin;          
-          continue;
-        }
-        vcp.push_back(*begin);
-        ++begin;
-      }
-    }
-  }
-  
-  // set distances to m_response
-  vector<Ppoint> vcptmp;
-  for (int i = 0; i < (int)vcp.size(); ++i) {
-    unproject(index, vcp[i]->m_itmp, point, *vcp[i], vcp[i]->m_coord);
-    
-    if (m_fm.m_pss.m_photos[index].m_projection[m_fm.m_level][2] *
-        vcp[i]->m_coord <= 0.0)
-      continue;
-
-    if (m_fm.m_pss.getMask(vcp[i]->m_coord, m_fm.m_level) == 0 ||
-        m_fm.insideBimages(vcp[i]->m_coord) == 0)
-      continue;
-
-    //??? from the closest
-    vcp[i]->m_response =
-      fabs(norm(vcp[i]->m_coord - m_fm.m_pss.m_photos[index].m_center) -
-           norm(vcp[i]->m_coord - m_fm.m_pss.m_photos[vcp[i]->m_itmp].m_center));
-    
-    vcptmp.push_back(vcp[i]);
-  }
-  vcptmp.swap(vcp);
-  sort(vcp.begin(), vcp.end());
-}
+                              const Cpoint& point, std::vector<Ppoint>& vcp) 
 ```
 
 collectCells 的作用是先把极线上的cell给取出来
@@ -635,63 +639,10 @@ collectCells 的作用是先把极线上的cell给取出来
  ```c++
 
 void Cseed::collectCells(const int index0, const int index1,
-                         const Cpoint& p0, std::vector<Vec2i>& cells) {
-  Vec3 point(p0.m_icoord[0], p0.m_icoord[1], p0.m_icoord[2]);
-#ifdef DEBUG
-  if (p0.m_icoord[2] != 1.0f) {
-    cerr << "Impossible in collectCells" << endl;    exit (1);
-  }
-#endif
-  
-  Mat3 F;
-  Image::setF(m_fm.m_pss.m_photos[index0], m_fm.m_pss.m_photos[index1],
-              F, m_fm.m_level);
-  const int gwidth = m_fm.m_pos.m_gwidths[index1];
-  const int gheight = m_fm.m_pos.m_gheights[index1];
-  
-  Vec3 line = transpose(F) * point;
-  if (line[0] == 0.0 && line[1] == 0.0) {
-    cerr << "Point right on top of the epipole?"
-         << index0 << ' ' << index1 << endl;
-    return;
-  }
-  // vertical
-  if (fabs(line[0]) > fabs(line[1])) {
-    for (int y = 0; y < gheight; ++y) {
-      const float fy = (y + 0.5) * m_fm.m_csize - 0.5f;
-      float fx = (- line[1] * fy - line[2]) / line[0];
-      fx = max((float)(INT_MIN + 3.0f), std::min((float)(INT_MAX - 3.0f), fx));
-      
-      const int ix = ((int)floor(fx + 0.5f)) / m_fm.m_csize;
-      if (0 <= ix && ix < gwidth)
-        cells.push_back(TVec2<int>(ix, y));
-      if (0 <= ix - 1 && ix - 1 < gwidth)
-        cells.push_back(TVec2<int>(ix - 1, y));
-      if (0 <= ix + 1 && ix + 1 < gwidth)
-        cells.push_back(TVec2<int>(ix + 1, y));
-    }
-  }
-  else {
-    for (int x = 0; x < gwidth; ++x) {
-      const float fx = (x + 0.5) * m_fm.m_csize - 0.5f;
-      float fy = (- line[0] * fx - line[2]) / line[1];
-      fy = max((float)(INT_MIN + 3.0f), std::min((float)(INT_MAX - 3.0f), fy));
-      
-      const int iy = ((int)floor(fy + 0.5f)) / m_fm.m_csize;
-      if (0 <= iy && iy < gheight)
-        cells.push_back(TVec2<int>(x, iy));
-      if (0 <= iy - 1 && iy - 1 < gheight)
-        cells.push_back(TVec2<int>(x, iy - 1));
-      if (0 <= iy + 1 && iy + 1 < gheight)
-        cells.push_back(TVec2<int>(x, iy + 1));
-    }
-  }
-}
+                         const Cpoint& p0, std::vector<Vec2i>& cells) 
  ```
 
-
-
-
+### 4.8.3 用AT结果初始化patch
 
 
 
@@ -832,26 +783,6 @@ void Coptim::encode(const Vec4f& coord, const Vec4f& normal,
   vect[1] = vect[1] / m_ascalesT[id];
   vect[2] = vect[2] / m_ascalesT[id];  
 }
-
-void Coptim::decode(Vec4f& coord, Vec4f& normal,
-		    const double* const vect, const int id) const {
-  decode(coord, vect, id);
-  const int image = m_indexesT[id][0];
-
-  const float angle1 = vect[1] * m_ascalesT[id];
-  const float angle2 = vect[2] * m_ascalesT[id];
-
-  const float fx = sin(angle1) * cos(angle2);
-  const float fy = sin(angle2);
-  const float fz = - cos(angle1) * cos(angle2);
-
-  Vec3f ftmp = m_xaxes[image] * fx + m_yaxes[image] * fy + m_zaxes[image] * fz;
-  normal = Vec4f(ftmp[0], ftmp[1], ftmp[2], 0.0f);
-}
-
-void Coptim::decode(Vec4f& coord, const double* const vect, const int id) const {
-  coord = m_centersT[id] + m_dscalesT[id] * vect[0] * m_raysT[id];
-}
 ```
 
 
@@ -864,87 +795,10 @@ void Coptim::decode(Vec4f& coord, const double* const vect, const int id) const 
 //----------------------------------------------------------------------
 
 double Coptim::my_f(unsigned n, const double *x, double *grad, void *my_func_data)
-{
-  double xs[3] = {x[0], x[1], x[2]};
-  const int id = *((int*)my_func_data);
-
-  const float angle1 = xs[1] * m_one->m_ascalesT[id];
-  const float angle2 = xs[2] * m_one->m_ascalesT[id];
-
-  double ret = 0.0;
-
-  //?????
-  const double bias = 0.0f;//2.0 - exp(- angle1 * angle1 / sigma2) - exp(- angle2 * angle2 / sigma2);
-  
-  Vec4f coord, normal;
-  m_one->decode(coord, normal, xs, id);
-  
-  const int index = m_one->m_indexesT[id][0];
-  Vec4f pxaxis, pyaxis;
-  m_one->getPAxes(index, coord, normal, pxaxis, pyaxis);
-  
-  const int size = min(m_one->m_fm.m_tau, (int)m_one->m_indexesT[id].size());
-  const int mininum = min(m_one->m_fm.m_minImageNumThreshold, size);
-
-  for (int i = 0; i < size; ++i) {
-    int flag;
-    flag = m_one->grabTex(coord, pxaxis, pyaxis, normal, m_one->m_indexesT[id][i],
-                          m_one->m_fm.m_wsize, m_one->m_texsT[id][i]);
-
-    if (flag == 0)
-      m_one->normalize(m_one->m_texsT[id][i]);
-  }
-
-  const int pairwise = 0;
-  if (pairwise) {
-    double ans = 0.0f;
-    int denom = 0;
-    for (int i = 0; i < size; ++i) {
-      for (int j = i+1; j < size; ++j) {
-        if (m_one->m_texsT[id][i].empty() || m_one->m_texsT[id][j].empty())
-          continue;
-        
-        ans += robustincc(1.0 - m_one->dot(m_one->m_texsT[id][i], m_one->m_texsT[id][j]));
-        denom++;
-      }
-    }
-    if (denom <
-        //m_one->m_fm.m_minImageNumThreshold *
-        //(m_one->m_fm.m_minImageNumThreshold - 1) / 2)
-        mininum * (mininum - 1) / 2)
-      ret = 2.0f;
-    else
-      ret = ans / denom + bias;
-  }
-  else {
-    if (m_one->m_texsT[id][0].empty())
-      return 2.0;
-      
-    double ans = 0.0f;
-    int denom = 0;
-    for (int i = 1; i < size; ++i) {
-      if (m_one->m_texsT[id][i].empty())
-        continue;
-      ans +=
-        robustincc(1.0 - m_one->dot(m_one->m_texsT[id][0], m_one->m_texsT[id][i]));
-      denom++;
-    }
-    //if (denom < m_one->m_fm.m_minImageNumThreshold - 1)
-    if (denom < mininum - 1)
-      ret = 2.0f;
-    else
-      ret = ans / denom + bias;
-  }
-
-  return ret;
-}
-
 
 ```
 
 得到patch的x和y轴，注意，x和y轴是带尺度的，相对于image[index], 单位pxaxis刚好投影后差一个像素
-
-
 
 ```c++
 
@@ -1037,6 +891,10 @@ int Coptim::grabTex(const Vec4f& coord, const Vec4f& pxaxis, const Vec4f& pyaxis
 
 
 ```
+
+## 4.10 Expansion
+
+
 
 
 
