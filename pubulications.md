@@ -24,8 +24,14 @@ permalink: /publications/
 
 
 
-
 ## Publications
+
+### 2023
+
+Wu, Weitong, **Li, Jianping**, Chi Chen, Bisheng Yang, Xianghong Zou, Yandi Yang, Yuhang Xu, Ruofei Zhong, and Ruibo Chen. "AFLI-Calib: Robust LiDAR-IMU extrinsic self-calibration based on adaptive frame length LiDAR odometry." ISPRS Journal of Photogrammetry and Remote Sensing 199 (2023): 157-181.
+
+**Li, Jianping**, Bisheng Yang, Yandi Yang, Xin Zhao, Youqi Liao, Ningning Zhu, Wenxia Dai, Rundong Liu, Ruibo Chen, and Zhen Dong. "Real-time automated forest field inventory using a compact low-cost helmet-based laser scanning system." International Journal of Applied Earth Observation and Geoinformation 118 (2023): 103299.
+
 ### 2022
 
 **李健平**, 杨必胜. 头盔式激光扫描系统 WHU-Helmet[J]. 同济大学学报 (自然科学版), 2022, 50(7).
@@ -70,6 +76,7 @@ Chen, Chi., Xianghong. Zou, Mao. Tian, **Li, Jianping** Weitong. Wu, Y. Song, W.
 **Li, Jianping**, Bisheng. Yang, Weitong. Wu, Wwenxia. Dai, C. Chen, X. Zou, and M. Tian. "3D MOBILE MAPPING WITH A LOW COST UAV SYSTEM." The International Archives of Photogrammetry, Remote Sensing and Spatial Information Sciences 42 (2017): 127.
 
 ### 2016
+
 Yang, Bisheng, Ronggang Huang, **Li, Jianping**, Mao Tian, Wenxia Dai, and Ruofei Zhong. "Automated reconstruction of building lods from airborne lidar point clouds using an improved morphological scale space." Remote Sensing 9, no. 1 (2016): 14.
 
 Yang, Bisheng, Ronggang Huang, Zhen Dong, Yufu Zang, and **Li, Jianping**. "Two-step adaptive extraction method for ground points and breaklines from lidar point clouds." ISPRS Journal of Photogrammetry and Remote Sensing 119 (2016): 373-389.
