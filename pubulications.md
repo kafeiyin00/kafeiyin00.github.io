@@ -26,7 +26,10 @@ permalink: /publications/
 
 ## Publications
 
+*** For corresponding author.
 ### 2023
+
+Youqi Liao, **Li, Jianping***, et al. "SE-Calib: Semantic Edges based LiDAR-Camera Boresight Online Calibration in Urban Scenes." IEEE Transactions on Geoscience and Remote Sensing (2023). (**TOP SCI**)
 
 **Li, Jianping**, et al. "WHU-Helmet: A helmet-based multi-sensor SLAM dataset for the evaluation of real-time 3D mapping in large-scale GNSS-denied environments." IEEE Transactions on Geoscience and Remote Sensing (2023). (**TOP SCI**)
 
