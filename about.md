@@ -10,7 +10,7 @@ My github: [github](https://github.com/kafeiyin00).
 
 My researchgate: [researchgate](https://www.researchgate.net/profile/Jianping_Li29). 
 
-My email: lijianping@whu.edu.cn
+My email: lijianping@whu.edu.cn, jianping.li@ntu.edu.sg
 
 ### Low-cost UAV LiDAR system
 

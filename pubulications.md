@@ -26,7 +26,8 @@ permalink: /publications/
 
 ## Publications
 
-*** For corresponding author.
+***** For corresponding author.
+
 ### 2023
 
 Youqi Liao, **Li, Jianping***, et al. "SE-Calib: Semantic Edges based LiDAR-Camera Boresight Online Calibration in Urban Scenes." IEEE Transactions on Geoscience and Remote Sensing (2023). (**TOP SCI**)
