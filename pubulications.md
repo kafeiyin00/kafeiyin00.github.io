@@ -27,6 +27,8 @@ permalink: /publications/
 
 ### 2023
 
+Yuhao Li, Xianghong Zou, Tian Li, Sihan Sun, Yuan Wang, Fuxun Liang, **Li, Jianping***, Bisheng Yang, and Zhen Dong. "MuCoGraph: A multi-scale constraint enhanced pose-graph framework for MLS point cloud inconsistency correction." ISPRS Journal of Photogrammetry and Remote Sensing 204 (2023): 421-441.(**TOP SCI**)
+
 Youqi Liao, **Li, Jianping***, et al. "SE-Calib: Semantic Edges based LiDAR-Camera Boresight Online Calibration in Urban Scenes." IEEE Transactions on Geoscience and Remote Sensing (2023). (**TOP SCI**)
 
 **Li, Jianping**, et al. "WHU-Helmet: A helmet-based multi-sensor SLAM dataset for the evaluation of real-time 3D mapping in large-scale GNSS-denied environments." IEEE Transactions on Geoscience and Remote Sensing (2023). (**TOP SCI**)
