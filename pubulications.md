@@ -27,7 +27,7 @@ permalink: /publications/
 
 ### 2023
 
-Yuhao Li, Xianghong Zou, Tian Li, Sihan Sun, Yuan Wang, Fuxun Liang, **Jianping Li***, **Bisheng Yang***, and Zhen Dong. "MuCoGraph: A multi-scale constraint enhanced pose-graph framework for MLS point cloud inconsistency correction." ISPRS Journal of Photogrammetry and Remote Sensing 204 (2023): 421-441.(**TOP SCI**)
+Yuhao Li, Xianghong Zou, Tian Li, Sihan Sun, Yuan Wang, Fuxun Liang, **Jianping Li*, Bisheng Yang***, and Zhen Dong. "MuCoGraph: A multi-scale constraint enhanced pose-graph framework for MLS point cloud inconsistency correction." ISPRS Journal of Photogrammetry and Remote Sensing 204 (2023): 421-441.(**TOP SCI**)
 
 Youqi Liao, **Jianping Li***, et al. "SE-Calib: Semantic Edges based LiDAR-Camera Boresight Online Calibration in Urban Scenes." IEEE Transactions on Geoscience and Remote Sensing (2023). (**TOP SCI**)
 
