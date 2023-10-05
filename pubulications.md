@@ -27,7 +27,7 @@ permalink: /publications/
 
 ### 2023
 
-__* for corresponding auther__
+__* for corresponding author__
 
 Yuhao Li, Xianghong Zou, Tian Li, Sihan Sun, Yuan Wang, Fuxun Liang, __Jianping Li*__, Bisheng Yang\*, and Zhen Dong. "MuCoGraph: A multi-scale constraint enhanced pose-graph framework for MLS point cloud inconsistency correction." ISPRS Journal of Photogrammetry and Remote Sensing 204 (2023): 421-441.(**TOP SCI**)
 
