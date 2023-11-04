@@ -5,6 +5,7 @@ permalink: /publications/
 ---
 ## Awards
 
+- Surveying science and technology progress award of China. 2023.9  
 - National Excellent Doctoral Thesis on LiDAR (10 per year). 2022.12  
 - Surveying science and technology progress special award of China (Only one per year). 2019.9  
 - Academic innovation award of LIESMARS (Only one per year). 2019.9  
@@ -17,6 +18,7 @@ permalink: /publications/
 | Resource | Project Name | Status | Amount | Time
 |--|--|--|--|--
 | Key Laboratory of Urban Spatial Information, Ministry of Natural Resources | Intelligent construction of 3D point cloud using heterogeneous platform | PI | 50K RMB | 2023-2024
+| National Science Foundation of China | Intelligent construction of 3D point cloud| PI | 300K RMB | 2023-
 | Postdoctoral Science Foundation of China | Collaborative construction of 3D point cloud using heterogeneous platforms | PI | 80K RMB | 2022
 | Postdoctoral Science Foundation of China | Collaborative construction of 3D point cloud using heterogeneous platform | PI | 180K RMB | 2022
 
