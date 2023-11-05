@@ -12,19 +12,6 @@ permalink: /publications/
 - First prize of the 20th China International Industrial Expo (for the mini-UAV LiDAR system). 2018.
 
 
-## Fundings
-
-
-| Resource | Project Name | Status | Amount | Time
-|--|--|--|--|--
-| Key Laboratory of Urban Spatial Information, Ministry of Natural Resources | Intelligent construction of 3D point cloud using heterogeneous platform | PI | 50K RMB | 2023-2024
-| National Science Foundation of China | Intelligent construction of 3D point cloud| PI | 300K RMB | 2023-
-| Postdoctoral Science Foundation of China | Collaborative construction of 3D point cloud using heterogeneous platforms | PI | 80K RMB | 2022
-| Postdoctoral Science Foundation of China | Collaborative construction of 3D point cloud using heterogeneous platform | PI | 180K RMB | 2022
-
-
-
-
 ## Publications
 
 ### 2023
