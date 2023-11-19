@@ -5,10 +5,10 @@ permalink: /publications/
 ---
 ## Awards
 
-- Surveying science and technology progress award of China. 2023.9  
-- National Excellent Doctoral Thesis on LiDAR (10 per year). 2022.12  
-- Surveying science and technology progress special award of China (Only one per year). 2019.9  
-- Academic innovation award of LIESMARS (Only one per year). 2019.9  
+- Surveying science and technology progress award of China (2023年测绘科学技术奖). 2023.9  
+- National Excellent Doctoral Thesis on LiDAR (2022年度全国激光雷达优秀博士论文) (10 per year). 2022.12  
+- Surveying science and technology progress special award of China (2019年测绘科技进步奖) (Only one per year). 2019.9  
+- Academic innovation award of LIESMARS(2019测绘遥感信息工程国家重点实验室研究生学术创新奖) (Only one per year). 2019.9  
 - First prize of the 20th China International Industrial Expo (for the mini-UAV LiDAR system). 2018.
 
 
