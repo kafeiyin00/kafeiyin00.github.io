@@ -18,6 +18,8 @@ permalink: /publications/
 
 __* for corresponding author__
 
+Zou, Xianghong, __Jianping Li*__, Yuan Wang, Fuxun Liang, Weitong Wu, Haiping Wang, Bisheng Yang\*, and Zhen Dong. "PatchAugNet: Patch feature augmentation-based heterogeneous point cloud place recognition in large-scale street scenes." _ISPRS Journal of Photogrammetry and Remote Sensing_ 206 (2023): 273-292.(**TOP SCI**)
+
 Yuhao Li, Xianghong Zou, Tian Li, Sihan Sun, Yuan Wang, Fuxun Liang, __Jianping Li*__, Bisheng Yang\*, and Zhen Dong. "MuCoGraph: A multi-scale constraint enhanced pose-graph framework for MLS point cloud inconsistency correction." _ISPRS Journal of Photogrammetry and Remote Sensing_ 204 (2023): 421-441.(**TOP SCI**)
 
 Youqi Liao, __Jianping Li*__, et al. "SE-Calib: Semantic Edges based LiDAR-Camera Boresight Online Calibration in Urban Scenes." IEEE _Transactions on Geoscience and Remote Sensing_ (2023). (**TOP SCI**)
