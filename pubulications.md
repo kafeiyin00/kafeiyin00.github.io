@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Awards & Publications & Fundings
+title: Awards & Publications
 permalink: /publications/
 ---
 ## Awards
